@@ -1,0 +1,64 @@
+import React, { useState, useEffect } from 'react';
+import client from '../api/client';
+import FilterBar from '../components/FilterBar';
+import OpportunityCard from '../components/OpportunityCard';
+import '../styles/Opportunities.css';
+
+const Opportunities = () => {
+  const [opportunities, setOpportunities] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const fetchOpportunities = async (filters = {}) => {
+    setLoading(true);
+    try {
+      // Build query string cleanly
+      const query = new URLSearchParams();
+      if (filters.search) query.append('search', filters.search);
+      if (filters.type) query.append('type', filters.type);
+      if (filters.mode) query.append('mode', filters.mode);
+      
+      const endpoint = query.toString() ? `/opportunities?${query.toString()}` : '/opportunities';
+      
+      const data = await client(endpoint);
+      setOpportunities(data);
+    } catch (err) {
+      setError(err.message || 'Failed to fetch opportunities');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOpportunities();
+  }, []);
+
+  return (
+    <div>
+      <h1 className="page-title">Opportunities Board</h1>
+      <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>
+        Discover jobs, internships, and connections exclusively for the LIU network.
+      </p>
+
+      {error && <div className="error-message">{error}</div>}
+
+      <FilterBar onFilterChange={fetchOpportunities} />
+
+      {loading ? (
+        <p>Loading opportunities...</p>
+      ) : opportunities.length === 0 ? (
+        <div className="card" style={{ textAlign: 'center', padding: '48px' }}>
+          <h3 style={{ color: 'var(--text-muted)' }}>No opportunities match your search.</h3>
+        </div>
+      ) : (
+        <div className="opportunities-grid">
+          {opportunities.map(opp => (
+            <OpportunityCard key={opp.id} opportunity={opp} mine={false} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Opportunities;

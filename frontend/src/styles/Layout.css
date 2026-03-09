@@ -1,0 +1,216 @@
+/* Base styling & Variables */
+:root {
+  --primary-color: #0b2239;
+  --secondary-color: #e67e22;
+  --bg-color: #f8fafc;
+  --sidebar-bg: #ffffff;
+  --navbar-bg: #0b2239;
+  --text-dark: #1e293b;
+  --text-light: #f1f5f9;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-dark);
+}
+
+.layout-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Navbar */
+.navbar {
+  height: 60px;
+  background-color: var(--navbar-bg);
+  color: var(--text-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  box-shadow: var(--shadow-sm);
+  z-index: 10;
+}
+
+.navbar-brand a {
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  text-decoration: none;
+}
+
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-badge {
+  background-color: var(--secondary-color);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.user-name {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.btn-logout, .btn-login {
+  background-color: transparent;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.3);
+  padding: 6px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.btn-logout:hover, .btn-login:hover {
+  background-color: rgba(255,255,255,0.1);
+  border-color: #fff;
+}
+
+/* Layout Body */
+.layout-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 250px;
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--border-color);
+  padding: 24px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-menu {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sidebar-menu a {
+  display: block;
+  padding: 12px 24px;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+}
+
+.sidebar-menu a:hover {
+  color: var(--primary-color);
+  background-color: rgba(11, 34, 57, 0.03);
+}
+
+.sidebar-menu a.active {
+  color: var(--primary-color);
+  background-color: rgba(11, 34, 57, 0.05);
+  border-left-color: var(--secondary-color);
+  font-weight: 600;
+}
+
+/* Content Area */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px;
+}
+
+/* Common UI Elements */
+.card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  padding: 24px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border-color);
+}
+
+.page-title {
+  margin-top: 0;
+  margin-bottom: 24px;
+  color: var(--primary-color);
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: #081a2b;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--text-dark);
+  font-size: 0.9rem;
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+  box-sizing: border-box;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(11, 34, 57, 0.1);
+}
+
+.error-message {
+  color: #ef4444;
+  background-color: #fef2f2;
+  border-left: 4px solid #ef4444;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
