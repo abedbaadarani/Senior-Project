@@ -9,7 +9,7 @@ const OpportunityDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  
+
   const [opportunity, setOpportunity] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -19,8 +19,18 @@ const OpportunityDetails = () => {
   // Recommendation State
   const [showRecForm, setShowRecForm] = useState(false);
   const [recStudentId, setRecStudentId] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [recMessage, setRecMessage] = useState('');
   const [recSubmitting, setRecSubmitting] = useState(false);
+  const [candidates, setCandidates] = useState([]);
+
+  useEffect(() => {
+    if (showRecForm && candidates.length === 0) {
+      client('/users/candidates')
+        .then(data => setCandidates(data))
+        .catch(err => console.error('Failed to fetch candidates:', err));
+    }
+  }, [showRecForm, candidates.length]);
 
   useEffect(() => {
     const fetchOpp = async () => {
@@ -38,7 +48,7 @@ const OpportunityDetails = () => {
 
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this opportunity?')) return;
-    
+
     try {
       await client(`/opportunities/${id}`, { method: 'DELETE' });
       const wasOwner = user && opportunity && user.id === opportunity.createdByUserId;
@@ -51,9 +61,9 @@ const OpportunityDetails = () => {
   const handleEdit = async (formData) => {
     setSubmitting(true);
     try {
-      const data = await client(`/opportunities/${id}`, { 
+      const data = await client(`/opportunities/${id}`, {
         method: 'PATCH',
-        body: formData 
+        body: formData
       });
       setOpportunity(data.opportunity);
       setIsEditing(false);
@@ -78,6 +88,7 @@ const OpportunityDetails = () => {
       alert('Recommendation submitted successfully!');
       setShowRecForm(false);
       setRecStudentId('');
+      setSearchTerm('');
       setRecMessage('');
     } catch (err) {
       alert(err.message || 'Failed to submit recommendation');
@@ -99,10 +110,10 @@ const OpportunityDetails = () => {
         <button className="btn-secondary" style={{ marginBottom: '20px' }} onClick={() => setIsEditing(false)}>
           ← Cancel Edit
         </button>
-        <OpportunityForm 
-          defaultValues={opportunity} 
-          onSubmit={handleEdit} 
-          isSubmitting={submitting} 
+        <OpportunityForm
+          defaultValues={opportunity}
+          onSubmit={handleEdit}
+          isSubmitting={submitting}
         />
       </div>
     );
@@ -111,18 +122,25 @@ const OpportunityDetails = () => {
   return (
     <div className="details-page">
       <Link to="/opportunities" className="back-link">← Back to Board</Link>
-      
+
       <div className="card">
         <div className="details-header">
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-            <span className={`badge badge-${opportunity.type.toLowerCase()}`}>{opportunity.type}</span>
-            <span className="badge badge-mode">{opportunity.mode}</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <span className={`badge badge-${opportunity.type.toLowerCase()}`}>{opportunity.type}</span>
+              <span className="badge badge-mode">{opportunity.mode}</span>
+            </div>
+            {opportunity.createdByRole && (
+              <span className="badge" style={{ backgroundColor: 'var(--bg-color)', color: 'var(--text-muted)', border: '1px solid var(--border-color)', fontWeight: 'normal', fontSize: '0.85rem' }}>
+                Posted by {opportunity.createdByRole === 'INSTRUCTOR' ? 'Instructor' : 'Alumni'}
+              </span>
+            )}
           </div>
           <h1 style={{ margin: '0 0 8px 0', color: 'var(--primary-color)' }}>{opportunity.title}</h1>
           <p style={{ margin: 0, fontSize: '1.1rem', color: 'var(--text-muted)' }}>
             {opportunity.company} • {opportunity.location}
           </p>
-          
+
           {(isOwner || isAdmin) && (
             <div className="details-actions">
               {isOwner && (
@@ -134,13 +152,13 @@ const OpportunityDetails = () => {
 
           {user && user.role === 'INSTRUCTOR' && (
             <div style={{ marginTop: '16px' }}>
-               <button 
-                 className="btn-primary" 
-                 style={{ backgroundColor: 'var(--secondary-color)' }}
-                 onClick={() => setShowRecForm(!showRecForm)}
-               >
-                 {showRecForm ? 'Cancel Endorsement' : 'Recommend a Student'}
-               </button>
+              <button
+                className="btn-primary"
+                style={{ backgroundColor: 'var(--secondary-color)' }}
+                onClick={() => setShowRecForm(!showRecForm)}
+              >
+                {showRecForm ? 'Cancel Endorsement' : 'Recommend a Student'}
+              </button>
             </div>
           )}
         </div>
@@ -150,24 +168,45 @@ const OpportunityDetails = () => {
             <h3 style={{ marginTop: 0, color: 'var(--primary-color)' }}>Recommend Student</h3>
             <form onSubmit={handleRecommendationSubmit}>
               <div className="form-group">
-                <label>Student ID *</label>
-                <input 
-                  type="number" 
-                  className="form-control" 
-                  value={recStudentId} 
-                  onChange={(e) => setRecStudentId(e.target.value)} 
-                  required 
-                  placeholder="e.g. 2"
+                <label>Select Student *</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  list="candidateOptions"
+                  placeholder="Type to search (Name or ID)..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    const matched = candidates.find(c => {
+                      const studentId = c.email.split('@')[0];
+                      return `${c.name} ${c.fatherName ? `(${c.fatherName})` : ''} - ID: ${studentId}` === e.target.value;
+                    });
+                    if (matched) {
+                      setRecStudentId(matched.id);
+                    } else {
+                      setRecStudentId('');
+                    }
+                  }}
+                  required
                 />
+                <datalist id="candidateOptions">
+                  {candidates.map(c => {
+                    const studentId = c.email.split('@')[0];
+                    return (
+                      <option key={c.id} value={`${c.name} ${c.fatherName ? `(${c.fatherName})` : ''} - ID: ${studentId}`} />
+                    );
+                  })}
+                </datalist>
+                {recStudentId && <div style={{ color: 'var(--primary-color)', fontSize: '0.85rem', marginTop: '4px', fontWeight: 'bold' }}>✓ Student Selected</div>}
               </div>
               <div className="form-group" style={{ marginBottom: '16px' }}>
                 <label>Recommendation Message *</label>
-                <textarea 
-                  className="form-control" 
-                  rows="3" 
-                  value={recMessage} 
-                  onChange={(e) => setRecMessage(e.target.value)} 
-                  required 
+                <textarea
+                  className="form-control"
+                  rows="3"
+                  value={recMessage}
+                  onChange={(e) => setRecMessage(e.target.value)}
+                  required
                   placeholder="Why is this student a good fit?"
                 ></textarea>
               </div>

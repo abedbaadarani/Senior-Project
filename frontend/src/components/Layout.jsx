@@ -20,7 +20,7 @@ const Layout = () => {
       import('../api/client').then((module) => {
         module.default('/alumni/pending').then(data => {
           setPendingCount(data ? data.length : 0);
-        }).catch(() => {});
+        }).catch(() => { });
       });
     }
   }, [user, location.pathname]); // Refresh count when navigation happens
@@ -56,16 +56,18 @@ const Layout = () => {
               <li>
                 <Link to="/opportunities" className={isActive('/opportunities')}>Opportunities</Link>
               </li>
-              
+
               {(user.role === 'INSTRUCTOR' || user.role === 'ALUMNI') && (
                 <li>
                   <Link to="/my-opportunities" className={isActive('/my-opportunities')}>My Posts</Link>
                 </li>
               )}
-              
+
               {(user.role === 'STUDENT' || user.role === 'INSTRUCTOR' || user.role === 'ADMIN' || user.role === 'HEAD_ADMIN' || user.role === 'ALUMNI') && (
                 <li>
-                  <Link to="/recommendations" className={isActive('/recommendations')}>Recommendations</Link>
+                  <Link to="/recommendations" className={isActive('/recommendations')}>
+                    {user.role === 'INSTRUCTOR' ? 'Students Recommended' : 'Recommendations'}
+                  </Link>
                 </li>
               )}
 
@@ -96,7 +98,7 @@ const Layout = () => {
             </ul>
           </aside>
         )}
-        
+
         <main className="content">
           <Outlet />
         </main>

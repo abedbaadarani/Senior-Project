@@ -42,27 +42,27 @@ const Recommendations = () => {
 
 
   if (user?.role === 'ADMIN' && recommendations.length === 0 && !loading) {
-     return (
-        <div>
-          <h1 className="page-title">Recommendations Overview</h1>
-          <div className="card" style={{ textAlign: 'center', padding: '48px' }}>
-            <h3 style={{ color: 'var(--text-muted)' }}>Admins manage accounts; currently no recommendations exist in the system.</h3>
-          </div>
+    return (
+      <div>
+        <h1 className="page-title">Recommendations Overview</h1>
+        <div className="card" style={{ textAlign: 'center', padding: '48px' }}>
+          <h3 style={{ color: 'var(--text-muted)' }}>Admins manage accounts; currently no recommendations exist in the system.</h3>
         </div>
-     );
+      </div>
+    );
   }
 
   return (
     <div>
       <h1 className="page-title">
         {(user.role === 'STUDENT' || user.role === 'ALUMNI') && 'My Recommendations'}
-        {user.role === 'INSTRUCTOR' && 'Recommendations I Wrote'}
+        {user.role === 'INSTRUCTOR' && 'Students Recommended'}
         {(user.role === 'ADMIN' || user.role === 'HEAD_ADMIN') && 'All System Recommendations'}
       </h1>
 
       <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>
         {(user.role === 'STUDENT' || user.role === 'ALUMNI') && 'View the endorsements written for you by university instructors.'}
-        {user.role === 'INSTRUCTOR' && 'Track the students you have endorsed for opportunities.'}
+        {user.role === 'INSTRUCTOR' && 'Track the students that have been endorsed for opportunities.'}
       </p>
 
       {error && <div className="error-message">{error}</div>}
@@ -79,30 +79,34 @@ const Recommendations = () => {
             <div key={rec.id} className="card" style={{ marginBottom: 0, padding: '20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
                 <span style={{ fontWeight: '600', color: 'var(--primary-color)' }}>
-                  {(user.role === 'STUDENT' || user.role === 'ALUMNI') ? `From Instructor ID: ${rec.instructorId}` : `For Student ID: ${rec.studentId}`}
-                  {(user.role === 'ADMIN' || user.role === 'HEAD_ADMIN') && ` (Instructor ${rec.instructorId} -> Student ${rec.studentId})`}
+                  {(user.role === 'STUDENT' || user.role === 'ALUMNI')
+                    ? `From: ${rec.instructor?.name || 'Instructor ' + rec.instructorId}`
+                    : `Student: ${rec.student?.name || 'ID ' + rec.studentId} ${rec.student?.email ? `(${rec.student.email})` : ''}`}
+                  {(user.role === 'ADMIN' || user.role === 'HEAD_ADMIN') && ` — (Instructor ${rec.instructor?.name || rec.instructorId} -> Student ${rec.student?.name || rec.studentId})`}
                 </span>
                 <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                   {new Date(rec.createdAt).toLocaleDateString()}
                 </span>
               </div>
-              
+
               <div style={{ marginBottom: '16px', fontSize: '0.9rem' }}>
                 <Link to={`/opportunities/${rec.opportunityId}`} style={{ fontWeight: '500' }}>
-                  Reference: Opportunity #{rec.opportunityId}
+                  Opportunity: {rec.opportunity?.title || 'ID ' + rec.opportunityId} {rec.opportunity?.company && `at ${rec.opportunity.company}`}
                 </Link>
               </div>
 
-              <div style={{ 
-                backgroundColor: 'var(--bg-color)', 
-                padding: '16px', 
-                borderRadius: '8px',
-                borderLeft: '4px solid var(--secondary-color)',
-                fontStyle: 'italic',
-                color: 'var(--text-dark)'
-              }}>
-                "{rec.message}"
-              </div>
+              {user.role !== 'INSTRUCTOR' && (
+                <div style={{
+                  backgroundColor: 'var(--bg-color)',
+                  padding: '16px',
+                  borderRadius: '8px',
+                  borderLeft: '4px solid var(--secondary-color)',
+                  fontStyle: 'italic',
+                  color: 'var(--text-dark)'
+                }}>
+                  "{rec.message}"
+                </div>
+              )}
             </div>
           ))}
         </div>

@@ -7,10 +7,10 @@ const DOMAIN = process.env.UNIVERSITY_DOMAIN || 'liu.edu';
 
 export const registerStudent = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, fatherName, email, password } = req.body;
 
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: 'Name, email, and password are required' });
+    if (!name || !fatherName || !email || !password) {
+      return res.status(400).json({ error: 'Name, Father Name, email, and password are required' });
     }
 
     if (!email.endsWith(`@${DOMAIN}`)) {
@@ -25,6 +25,7 @@ export const registerStudent = async (req, res) => {
     const passwordHash = await bcrypt.hash(password, 10);
     const newUser = await userRepository.createUser({
       name,
+      fatherName,
       email,
       passwordHash,
       role: 'STUDENT',
@@ -38,10 +39,10 @@ export const registerStudent = async (req, res) => {
 
 export const registerAlumni = async (req, res) => {
   try {
-    const { name, email, password, graduationYear } = req.body;
+    const { name, fatherName, email, password, graduationYear } = req.body;
 
-    if (!name || !email || !password || !graduationYear) {
-      return res.status(400).json({ error: 'Name, email, password, and graduationYear are required' });
+    if (!name || !fatherName || !email || !password || !graduationYear) {
+      return res.status(400).json({ error: 'Name, Father Name, email, password, and graduationYear are required' });
     }
 
     const existingUser = await userRepository.findByEmail(email);
@@ -52,6 +53,7 @@ export const registerAlumni = async (req, res) => {
     const passwordHash = await bcrypt.hash(password, 10);
     const newUser = await userRepository.createUser({
       name,
+      fatherName,
       email,
       passwordHash,
       role: 'ALUMNI',
@@ -86,11 +88,11 @@ export const login = async (req, res) => {
       return res.status(403).json({ error: 'Your alumni account is pending approval by an instructor.' });
     }
 
-    const payload = { 
-      id: user.id, 
-      role: user.role, 
-      email: user.email, 
-      needsPasswordChange: user.needsPasswordChange 
+    const payload = {
+      id: user.id,
+      role: user.role,
+      email: user.email,
+      needsPasswordChange: user.needsPasswordChange
     };
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1d' });
 
@@ -125,18 +127,18 @@ export const changePassword = async (req, res) => {
       return res.status(400).json({ error: 'New password is required' });
     }
 
-    const user = await userRepository.getUserById(req.user.id);
+    const user = await userRepository.getUserByIdWithPassword(req.user.id);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
+
     // Only check old password if the user was required to change it, 
     // or if you want to always require old password for security.
     // For "temporary password", oldPassword is theoretically the one they logged in with.
     if (oldPassword) {
       const isMatch = await bcrypt.compare(oldPassword, user.passwordHash);
       if (!isMatch) {
-         return res.status(401).json({ error: 'Invalid old password' });
+        return res.status(401).json({ error: 'Invalid old password' });
       }
     }
 
@@ -144,11 +146,11 @@ export const changePassword = async (req, res) => {
     const updatedUser = await userRepository.updatePassword(user.id, passwordHash);
 
     // Issue a fresh token since their security state changed
-    const payload = { 
-      id: updatedUser.id, 
-      role: updatedUser.role, 
-      email: updatedUser.email, 
-      needsPasswordChange: false 
+    const payload = {
+      id: updatedUser.id,
+      role: updatedUser.role,
+      email: updatedUser.email,
+      needsPasswordChange: false
     };
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1d' });
 

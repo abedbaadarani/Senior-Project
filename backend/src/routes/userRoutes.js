@@ -3,18 +3,27 @@ import userRepository from '../data/userRepository.js';
 
 const router = express.Router();
 
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const users = userRepository.getAllUsers();
+    const users = await userRepository.getAllUsers();
     res.status(200).json(users);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch users' });
   }
 });
 
-router.get('/:id', (req, res) => {
+router.get('/candidates', async (req, res) => {
   try {
-    const user = userRepository.getUserById(req.params.id);
+    const candidates = await userRepository.getValidCandidates();
+    res.status(200).json(candidates);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch candidates' });
+  }
+});
+
+router.get('/:id', async (req, res) => {
+  try {
+    const user = await userRepository.getUserById(req.params.id);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }

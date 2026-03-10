@@ -14,10 +14,21 @@ class UserRepository {
       .select('*')
       .eq('id', id)
       .single();
-    
+
     if (error || !user) return null;
     const { passwordHash, ...safeUser } = this._mapToCamelCase(user);
     return safeUser;
+  }
+
+  async getUserByIdWithPassword(id) {
+    const { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error || !user) return null;
+    return this._mapToCamelCase(user);
   }
 
   async findByEmail(email) {
@@ -37,7 +48,18 @@ class UserRepository {
       .select('*')
       .eq('role', 'ALUMNI')
       .eq('is_approved', false);
-    
+
+    if (error) throw error;
+    return users.map(user => this._mapToCamelCase(user)).map(({ passwordHash, ...user }) => user);
+  }
+
+  async getValidCandidates() {
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('*')
+      .in('role', ['STUDENT', 'ALUMNI'])
+      .eq('is_approved', true);
+
     if (error) throw error;
     return users.map(user => this._mapToCamelCase(user)).map(({ passwordHash, ...user }) => user);
   }
@@ -71,6 +93,7 @@ class UserRepository {
   async createUser(userData) {
     const mappedData = {
       name: userData.name,
+      father_name: userData.fatherName || null,
       email: userData.email,
       password_hash: userData.passwordHash,
       role: userData.role,
@@ -86,7 +109,7 @@ class UserRepository {
       .single();
 
     if (error) throw error;
-    
+
     const { passwordHash, ...safeUser } = this._mapToCamelCase(newUser);
     return safeUser;
   }
@@ -96,6 +119,7 @@ class UserRepository {
     return {
       id: row.id,
       name: row.name,
+      fatherName: row.father_name,
       email: row.email,
       passwordHash: row.password_hash,
       role: row.role,

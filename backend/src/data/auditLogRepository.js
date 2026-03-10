@@ -27,21 +27,21 @@ class AuditLogRepository {
   async getPaginated(page, limit) {
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit - 1; // Supabase range is inclusive
-    
+
     // Total count query
     const { count, error: countError } = await supabase
       .from('audit_logs')
       .select('*', { count: 'exact', head: true });
-      
+
     if (countError) throw countError;
 
     // Data query
     const { data: logs, error } = await supabase
       .from('audit_logs')
       .select('*')
-      .order('timestamp', { ascending: false })
+      .order('created_at', { ascending: false })
       .range(startIndex, endIndex);
-      
+
     if (error) throw error;
 
     return {
@@ -62,7 +62,7 @@ class AuditLogRepository {
       action: row.action,
       targetType: row.target_type,
       targetId: row.target_id,
-      timestamp: row.timestamp,
+      timestamp: row.created_at,
       metadata: row.metadata,
     };
   }

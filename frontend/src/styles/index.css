@@ -47,7 +47,7 @@ body {
   background: white;
   padding: 2rem;
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
 .home-container h2 {
@@ -77,4 +77,293 @@ body {
   padding: 0.2rem 0.6rem;
   background-color: var(--secondary-color);
   border-radius: 4px;
+}
+
+/* ================================================================
+   GORGEOUS ADVANCED UI - AUTHENTICATION & REGISTRATION
+=================================================================== */
+
+@keyframes slideUpFade {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gradientBG {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px) scale(1);
+  }
+
+  33% {
+    transform: translateY(-30px) scale(1.05);
+  }
+
+  66% {
+    transform: translateY(15px) scale(0.95);
+  }
+
+  100% {
+    transform: translateY(0px) scale(1);
+  }
+}
+
+.auth-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  width: 100%;
+  left: 0;
+  top: 0;
+  /* Cinematic photo background with dark blue overlay */
+  background: linear-gradient(rgba(15, 23, 42, 0.70), rgba(9, 14, 28, 0.85)), url('/bg-students.png') center 40%/cover no-repeat;
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+  margin: 0;
+  padding: 20px 20px;
+}
+
+/* Stunning Floating Orbs */
+.floating-bubble {
+  display: none;
+  /* Hidden when using photo background */
+}
+
+.bubble-1 {
+  width: 600px;
+  height: 600px;
+  background: #e67e22;
+  /* LIU Orange accent */
+  top: -200px;
+  left: -200px;
+  animation: float 14s ease-in-out infinite;
+}
+
+.bubble-2 {
+  width: 800px;
+  height: 800px;
+  background: #0284c7;
+  /* Deep ocean blue */
+  bottom: -300px;
+  right: -200px;
+  animation: float 18s ease-in-out infinite reverse;
+}
+
+.bubble-3 {
+  width: 500px;
+  height: 500px;
+  background: #6366f1;
+  /* Purple/Indigo accent */
+  top: 40%;
+  left: 60%;
+  animation: float 22s ease-in-out infinite 2s;
+}
+
+/* Centralized Container */
+.auth-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+  width: 100%;
+  max-width: 500px;
+}
+
+/* Huge Floating Brand Header */
+.auth-brand-header {
+  text-align: center;
+  margin-bottom: 30px;
+  animation: slideUpFade 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.auth-brand-header h1 {
+  font-size: 2.2rem;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  color: #ffffff;
+  margin-bottom: 8px;
+  line-height: 1.1;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.auth-brand-header p {
+  font-size: 1rem;
+  color: #cbd5e1;
+  line-height: 1.5;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* The Glass Card */
+.auth-card {
+  width: 100%;
+  max-width: 380px;
+  /* Reduced width */
+  background: rgba(15, 23, 42, 0.45);
+  /* Changed back to dark frost */
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), 0 inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  padding: 36px 32px;
+  /* Reduced padding */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: slideUpFade 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.1s;
+  opacity: 0;
+  /* Starts hidden for animation */
+}
+
+.auth-title {
+  font-size: 1.75rem;
+  /* Reduced font size */
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 6px;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+}
+
+.auth-subtitle {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.95rem;
+  /* Reduced font size */
+  margin-bottom: 24px;
+  /* Reduced margin */
+  line-height: 1.4;
+}
+
+.auth-form-group {
+  margin-bottom: 20px;
+  /* Reduced margin */
+}
+
+.auth-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #cbd5e1;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 12px 14px;
+  /* Reduced padding */
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(15, 23, 42, 0.5);
+  /* Slightly darker translucent inputs */
+  color: #ffffff;
+  box-sizing: border-box;
+}
+
+.auth-input::placeholder {
+  color: #64748b;
+}
+
+.auth-input:focus {
+  outline: none;
+  border-color: #e67e22;
+  box-shadow: 0 0 0 4px rgba(230, 126, 34, 0.2);
+  background: rgba(15, 23, 42, 0.7);
+}
+
+.auth-btn {
+  width: 100%;
+  padding: 14px;
+  /* Reduced padding */
+  background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.05rem;
+  /* Reduced font size */
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 12px;
+  letter-spacing: 0.02em;
+  box-shadow: 0 6px 12px -4px rgba(230, 126, 34, 0.5), 0 inset 0 2px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: all 0.6s ease;
+}
+
+.auth-btn:hover::after {
+  left: 200%;
+}
+
+.auth-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 25px -5px rgba(230, 126, 34, 0.6);
+  background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+}
+
+.auth-btn:active {
+  transform: translateY(1px);
+}
+
+.auth-footer {
+  margin-top: 32px;
+  /* Reduced margin */
+  text-align: center;
+  font-size: 0.95rem;
+  /* Reduced font size */
+  color: #94a3b8;
+  font-weight: 500;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.auth-link {
+  color: #e67e22;
+  text-decoration: none;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  padding: 6px 10px;
+  display: inline-block;
+  font-size: 0.95rem;
+}
+
+.auth-link:hover {
+  color: #f39c12;
+  text-decoration: none;
+  background: rgba(230, 126, 34, 0.1);
+  border-radius: 8px;
 }
