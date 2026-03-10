@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import NotificationsDropdown from './NotificationsDropdown';
 import '../styles/Layout.css';
 
 const Layout = () => {
@@ -36,6 +37,7 @@ const Layout = () => {
         <div className="navbar-user">
           {user ? (
             <>
+              <NotificationsDropdown />
               <span className="user-badge">{user.role.replace('_', ' ')}</span>
               <span className="user-name">{user.name}</span>
               <button className="btn-logout" onClick={handleLogout}>Log Out</button>
@@ -54,8 +56,20 @@ const Layout = () => {
                 <Link to="/dashboard" className={isActive('/dashboard')}>Dashboard</Link>
               </li>
               <li>
+                <Link to="/profile" className={isActive('/profile')}>My Profile</Link>
+              </li>
+              <li>
                 <Link to="/opportunities" className={isActive('/opportunities')}>Opportunities</Link>
               </li>
+              <li>
+                <Link to="/messages" className={isActive('/messages')}>Direct Messages</Link>
+              </li>
+
+              {(user.role === 'ALUMNI' || user.role === 'STUDENT') && (
+                <li>
+                  <Link to="/alumni-directory" className={isActive('/alumni-directory')}>Alumni Directory</Link>
+                </li>
+              )}
 
               {(user.role === 'INSTRUCTOR' || user.role === 'ALUMNI') && (
                 <li>
@@ -63,7 +77,7 @@ const Layout = () => {
                 </li>
               )}
 
-              {(user.role === 'STUDENT' || user.role === 'INSTRUCTOR' || user.role === 'ADMIN' || user.role === 'HEAD_ADMIN' || user.role === 'ALUMNI') && (
+              {(user.role === 'INSTRUCTOR' || user.role === 'ADMIN' || user.role === 'HEAD_ADMIN' || user.role === 'ALUMNI') && (
                 <li>
                   <Link to="/recommendations" className={isActive('/recommendations')}>
                     {user.role === 'INSTRUCTOR' ? 'Students Recommended' : 'Recommendations'}

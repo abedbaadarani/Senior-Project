@@ -2,6 +2,7 @@ import recommendationRepository from '../data/recommendationRepository.js';
 import userRepository from '../data/userRepository.js';
 import opportunityRepository from '../data/opportunityRepository.js';
 import auditLogService from '../services/auditLogService.js';
+import notificationRepository from '../data/notificationRepository.js';
 
 export const createRecommendation = async (req, res) => {
   try {
@@ -36,6 +37,13 @@ export const createRecommendation = async (req, res) => {
     auditLogService.logAction(req.user, 'create-recommendation', 'RECOMMENDATION', recommendation.id, {
       studentId,
       opportunityId
+    });
+
+    await notificationRepository.createNotification({
+      userId: parseInt(studentId, 10),
+      title: 'New Recommendation',
+      message: `Instructor ${req.user.name} has recommended you for: ${opportunity.title}`,
+      link: '/recommendations'
     });
 
     res.status(201).json({ message: 'Recommendation created successfully', recommendation });

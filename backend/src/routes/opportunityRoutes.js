@@ -7,14 +7,18 @@ import {
   getMyOpportunities,
   updateOpportunity,
   deleteOpportunity,
+  toggleBookmark,
+  getBookmarks,
 } from '../controllers/opportunityController.js';
 
 const router = express.Router();
 
 // Public authenticated endpoints
 router.get('/', requireAuth, getOpportunities);
+router.get('/bookmarks', requireAuth, getBookmarks);
 router.get('/mine', requireAuth, requireRole('INSTRUCTOR', 'ALUMNI'), getMyOpportunities);
 router.get('/:id', requireAuth, getOpportunityById);
+router.post('/:id/bookmark', requireAuth, toggleBookmark);
 
 // Creator endpoints
 router.post('/', requireAuth, requireRole('INSTRUCTOR', 'ALUMNI'), createOpportunity);

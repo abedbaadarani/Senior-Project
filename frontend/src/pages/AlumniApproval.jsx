@@ -28,7 +28,7 @@ const AlumniApproval = () => {
 
   const handleApprove = async (alumniId, name) => {
     if (!window.confirm(`Are you sure you want to approve ${name} as a verified Alumni?`)) return;
-    
+
     try {
       await client(`/alumni/${alumniId}/approve`, { method: 'PATCH' });
       // Remove from list automatically
@@ -36,6 +36,19 @@ const AlumniApproval = () => {
       alert(`${name} has been successfully verified!`);
     } catch (err) {
       alert(err.message || 'Failed to approve alumni');
+    }
+  };
+
+  const handleReject = async (alumniId, name) => {
+    if (!window.confirm(`Are you sure you want to reject and delete the request from ${name}?`)) return;
+
+    try {
+      await client(`/alumni/${alumniId}/reject`, { method: 'DELETE' });
+      // Remove from list automatically
+      setPendingAlumni(pendingAlumni.filter((a) => a.id !== alumniId));
+      alert(`${name}'s request has been rejected.`);
+    } catch (err) {
+      alert(err.message || 'Failed to reject alumni');
     }
   };
 
@@ -67,15 +80,28 @@ const AlumniApproval = () => {
                 <strong>Email:</strong> {alumni.email}
               </p>
               <p style={{ margin: '8px 0', color: 'var(--text-muted)' }}>
+                <strong>ID:</strong> {alumni.universityId || 'Not Given'}
+              </p>
+              <p style={{ margin: '8px 0', color: 'var(--text-muted)' }}>
+                <strong>Father's Name:</strong> {alumni.fatherName || 'Not Given'}
+              </p>
+              <p style={{ margin: '8px 0', color: 'var(--text-muted)' }}>
                 <strong>Graduation Year:</strong> {alumni.graduationYear}
               </p>
-              <div style={{ marginTop: '20px' }}>
-                <button 
-                  className="btn-primary" 
-                  style={{ width: '100%', backgroundColor: '#10b981' }}
+              <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
+                <button
+                  className="btn-primary"
+                  style={{ flex: 1, backgroundColor: '#10b981' }}
                   onClick={() => handleApprove(alumni.id, alumni.name)}
                 >
-                  Verify & Approve Identity
+                  Approve
+                </button>
+                <button
+                  className="btn-primary"
+                  style={{ flex: 1, backgroundColor: '#ef4444' }}
+                  onClick={() => handleReject(alumni.id, alumni.name)}
+                >
+                  Reject
                 </button>
               </div>
             </div>

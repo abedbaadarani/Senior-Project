@@ -2,7 +2,11 @@ const BASE_URL = 'http://localhost:5000/api';
 
 const client = async (endpoint, { body, ...customConfig } = {}) => {
   const token = localStorage.getItem('token');
-  const headers = { 'Content-Type': 'application/json' };
+  const headers = {};
+
+  if (body && !(body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   if (token) {
     headers.Authorization = `Bearer ${token}`;
@@ -18,7 +22,7 @@ const client = async (endpoint, { body, ...customConfig } = {}) => {
   };
 
   if (body) {
-    config.body = JSON.stringify(body);
+    config.body = body instanceof FormData ? body : JSON.stringify(body);
   }
 
   const response = await fetch(`${BASE_URL}${endpoint}`, config);

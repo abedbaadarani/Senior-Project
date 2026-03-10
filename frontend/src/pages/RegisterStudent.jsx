@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import client from '../api/client';
+import { useAuth } from '../context/AuthContext';
 import '../styles/Layout.css';
 
 const RegisterStudent = () => {
@@ -8,6 +9,7 @@ const RegisterStudent = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -17,12 +19,16 @@ const RegisterStudent = () => {
     e.preventDefault();
     setError(null);
     try {
-      if (!formData.email.endsWith('@liu.edu')) {
-        throw new Error('Must use a valid @liu.edu email address');
+      if (!/^\d+@students\.liu\.edu\.lb$/.test(formData.email)) {
+        throw new Error('Must use a valid ID@students.liu.edu.lb email address');
       }
       await client('/auth/register/student', { body: formData });
+
+      // Auto login immediately after registration
+      await login(formData.email, formData.password);
+
       setSuccess(true);
-      setTimeout(() => navigate('/login'), 2000);
+      setTimeout(() => navigate('/dashboard'), 1500);
     } catch (err) {
       setError(err.message);
     }
@@ -33,7 +39,7 @@ const RegisterStudent = () => {
       <div className="auth-wrapper">
         <div className="auth-card" style={{ textAlign: 'center' }}>
           <h2 className="auth-title">Welcome Aboard!</h2>
-          <p className="auth-subtitle" style={{ marginBottom: 0 }}>Registered successfully. Redirecting to login...</p>
+          <p className="auth-subtitle" style={{ marginBottom: 0 }}>Registered successfully. Redirecting to your dashboard...</p>
         </div>
       </div>
     );
@@ -53,7 +59,7 @@ const RegisterStudent = () => {
 
         <div className="auth-card">
           <h2 className="auth-title">Student Registration</h2>
-          <p className="auth-subtitle">Create an account using your @liu.edu email</p>
+          <p className="auth-subtitle">Create an account using your ID@students.liu.edu.lb email</p>
 
           {error && <div className="error-message">{error}</div>}
 
@@ -70,7 +76,7 @@ const RegisterStudent = () => {
 
             <div className="auth-form-group">
               <label htmlFor="email" className="auth-label">University Email *</label>
-              <input id="email" type="email" className="auth-input" value={formData.email} onChange={handleChange} required placeholder="student@liu.edu" />
+              <input id="email" type="email" className="auth-input" value={formData.email} onChange={handleChange} required placeholder="12110625@students.liu.edu.lb" />
             </div>
 
             <div className="auth-form-group">

@@ -4,7 +4,7 @@ import client from '../api/client';
 import '../styles/Layout.css';
 
 const RegisterAlumni = () => {
-  const [formData, setFormData] = useState({ name: '', fatherName: '', email: '', password: '', graduationYear: '', major: '' });
+  const [formData, setFormData] = useState({ name: '', fatherName: '', email: '', password: '', graduationYear: '', universityId: '', major: '' });
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
@@ -19,6 +19,10 @@ const RegisterAlumni = () => {
     try {
       if (!formData.graduationYear || isNaN(formData.graduationYear)) {
         throw new Error('Must provide a valid graduation year');
+      }
+
+      if (!formData.universityId) {
+        throw new Error('Must provide a valid university ID');
       }
 
       const payload = {
@@ -77,6 +81,11 @@ const RegisterAlumni = () => {
             <div className="auth-form-group">
               <label htmlFor="email" className="auth-label">Email *</label>
               <input id="email" type="email" className="auth-input" value={formData.email} onChange={handleChange} required placeholder="personal@email.com" />
+            </div>
+
+            <div className="auth-form-group">
+              <label htmlFor="universityId" className="auth-label">University ID *</label>
+              <input id="universityId" type="text" className="auth-input" value={formData.universityId} onChange={handleChange} required placeholder="e.g. 12110625" />
             </div>
 
             <div className="auth-form-group">

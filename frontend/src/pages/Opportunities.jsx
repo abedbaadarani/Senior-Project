@@ -6,8 +6,18 @@ import '../styles/Opportunities.css';
 
 const Opportunities = () => {
   const [opportunities, setOpportunities] = useState([]);
+  const [bookmarkedIds, setBookmarkedIds] = useState(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const fetchBookmarks = async () => {
+    try {
+      const data = await client('/opportunities/bookmarks');
+      setBookmarkedIds(new Set(data.map(opp => opp.id)));
+    } catch (err) {
+      console.error('Failed to fetch bookmarks', err);
+    }
+  };
 
   const fetchOpportunities = async (filters = {}) => {
     setLoading(true);
@@ -17,9 +27,9 @@ const Opportunities = () => {
       if (filters.search) query.append('search', filters.search);
       if (filters.type) query.append('type', filters.type);
       if (filters.mode) query.append('mode', filters.mode);
-      
+
       const endpoint = query.toString() ? `/opportunities?${query.toString()}` : '/opportunities';
-      
+
       const data = await client(endpoint);
       setOpportunities(data);
     } catch (err) {
@@ -30,6 +40,7 @@ const Opportunities = () => {
   };
 
   useEffect(() => {
+    fetchBookmarks();
     fetchOpportunities();
   }, []);
 
@@ -53,7 +64,7 @@ const Opportunities = () => {
       ) : (
         <div className="opportunities-grid">
           {opportunities.map(opp => (
-            <OpportunityCard key={opp.id} opportunity={opp} mine={false} />
+            <OpportunityCard key={opp.id} opportunity={opp} mine={false} initialBookmarked={bookmarkedIds.has(opp.id)} />
           ))}
         </div>
       )}

@@ -1,7 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import client from '../api/client';
 
-const OpportunityCard = ({ opportunity, mine }) => {
+const OpportunityCard = ({ opportunity, mine, initialBookmarked }) => {
+  const [isBookmarked, setIsBookmarked] = useState(initialBookmarked || false);
+  const [toggling, setToggling] = useState(false);
+
+  const handleToggleBookmark = async () => {
+    setToggling(true);
+    try {
+      const data = await client(`/opportunities/${opportunity.id}/bookmark`, { method: 'POST' });
+      setIsBookmarked(data.bookmarked);
+    } catch (err) {
+      console.error('Failed to toggle bookmark', err);
+    } finally {
+      setToggling(false);
+    }
+  };
+
   return (
     <div className="card opportunity-card">
       <div className="opportunity-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -15,8 +31,29 @@ const OpportunityCard = ({ opportunity, mine }) => {
           </span>
         )}
       </div>
-      <h3 className="opportunity-title">{opportunity.title}</h3>
-      <p className="opportunity-company">{opportunity.company} • {opportunity.location}</p>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <h3 className="opportunity-title" style={{ margin: 0, paddingRight: '12px' }}>{opportunity.title}</h3>
+        {!mine && (
+          <button
+            onClick={handleToggleBookmark}
+            disabled={toggling}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '1.5rem',
+              color: isBookmarked ? '#ef4444' : '#cbd5e1',
+              padding: 0,
+              lineHeight: 1
+            }}
+          >
+            {isBookmarked ? '♥' : '♡'}
+          </button>
+        )}
+      </div>
+
+      <p className="opportunity-company" style={{ marginTop: '8px' }}>{opportunity.company} • {opportunity.location}</p>
 
       <p className="opportunity-description">
         {opportunity.description.length > 120

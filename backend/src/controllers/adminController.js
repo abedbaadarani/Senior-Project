@@ -12,7 +12,7 @@ export const createAdmin = async (req, res) => {
 
     const existingUser = await userRepository.findByEmail(email);
     if (existingUser) {
-      return res.status(400).json({ error: 'Email already registered' });
+      return res.status(400).json({ error: 'This email has already been used.' });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
@@ -42,7 +42,7 @@ export const createInstructor = async (req, res) => {
 
     const existingUser = await userRepository.findByEmail(email);
     if (existingUser) {
-      return res.status(400).json({ error: 'Email already registered' });
+      return res.status(400).json({ error: 'This email has already been used.' });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);

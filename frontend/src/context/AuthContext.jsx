@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     const data = await client('/auth/login', { body: { email, password } });
     localStorage.setItem('token', data.token);
-    
+
     // Fetch profile
     const profileData = await client('/auth/me');
     setUser(profileData.user);
@@ -54,8 +54,17 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
+  const updateUser = async (profileData) => {
+    const data = await client('/auth/me', {
+      method: 'PUT',
+      body: profileData
+    });
+    setUser(data.user);
+    return data;
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, setupPassword }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, setupPassword, updateUser }}>
       {!loading && children}
     </AuthContext.Provider>
   );

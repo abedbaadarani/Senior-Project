@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import userRepository from '../data/userRepository.js';
+import { supabase } from '../config/supabase.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'supersecretjwtkey';
 const DOMAIN = process.env.UNIVERSITY_DOMAIN || 'liu.edu';
@@ -13,13 +14,15 @@ export const registerStudent = async (req, res) => {
       return res.status(400).json({ error: 'Name, Father Name, email, and password are required' });
     }
 
-    if (!email.endsWith(`@${DOMAIN}`)) {
-      return res.status(400).json({ error: `Must use a valid @${DOMAIN} email address` });
+    const emailMatch = email.match(/^(\d+)@students\.liu\.edu\.lb$/);
+    if (!emailMatch) {
+      return res.status(400).json({ error: 'Must use a valid ID@students.liu.edu.lb email' });
     }
+    const universityId = emailMatch[1];
 
     const existingUser = await userRepository.findByEmail(email);
     if (existingUser) {
-      return res.status(400).json({ error: 'Email already registered' });
+      return res.status(400).json({ error: 'This email has already been used.' });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
@@ -29,25 +32,26 @@ export const registerStudent = async (req, res) => {
       email,
       passwordHash,
       role: 'STUDENT',
+      universityId,
     });
 
     res.status(201).json({ message: 'Student registered successfully', user: newUser });
   } catch (err) {
-    res.status(500).json({ error: 'Registration failed' });
+    res.status(500).json({ error: err.message || 'Registration failed' });
   }
 };
 
 export const registerAlumni = async (req, res) => {
   try {
-    const { name, fatherName, email, password, graduationYear } = req.body;
+    const { name, fatherName, email, password, graduationYear, universityId } = req.body;
 
-    if (!name || !fatherName || !email || !password || !graduationYear) {
-      return res.status(400).json({ error: 'Name, Father Name, email, password, and graduationYear are required' });
+    if (!name || !fatherName || !email || !password || !graduationYear || !universityId) {
+      return res.status(400).json({ error: 'Name, Father Name, University ID, email, password, and graduationYear are required' });
     }
 
     const existingUser = await userRepository.findByEmail(email);
     if (existingUser) {
-      return res.status(400).json({ error: 'Email already registered' });
+      return res.status(400).json({ error: 'This email has already been used.' });
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
@@ -58,6 +62,7 @@ export const registerAlumni = async (req, res) => {
       passwordHash,
       role: 'ALUMNI',
       graduationYear,
+      universityId,
     });
 
     res.status(201).json({ message: 'Alumni registered successfully', user: newUser });
@@ -116,6 +121,50 @@ export const getMe = async (req, res) => {
     res.status(200).json({ user });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch profile' });
+  }
+};
+
+export const updateProfile = async (req, res) => {
+  try {
+    const { major, linkedinUrl, githubUrl } = req.body;
+    let cvUrl = req.body.cvUrl || null; // fallback to existing cvUrl if passed as text
+
+    if (req.file) {
+      const fileExt = req.file.originalname.split('.').pop();
+      const fileName = `${req.user.id}-${Date.now()}.${fileExt}`;
+
+      const { error } = await supabase.storage
+        .from('resumes')
+        .upload(fileName, req.file.buffer, {
+          contentType: req.file.mimetype,
+          upsert: true
+        });
+
+      if (error) {
+        throw new Error('File upload to storage failed');
+      }
+
+      const { data: publicData } = supabase.storage
+        .from('resumes')
+        .getPublicUrl(fileName);
+
+      if (publicData) {
+        cvUrl = publicData.publicUrl;
+      }
+    }
+
+    // Always call the repository, even if cvUrl wasn't changed
+    const updatedUser = await userRepository.updateProfile(req.user.id, {
+      major,
+      cvUrl,
+      linkedinUrl,
+      githubUrl
+    });
+
+    res.status(200).json({ message: 'Profile updated successfully', user: updatedUser });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to update profile' });
   }
 };
 

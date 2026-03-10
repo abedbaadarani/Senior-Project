@@ -7,9 +7,11 @@ import ProtectedRoute from '../components/ProtectedRoute';
 
 // Pages
 import Login from '../pages/Login';
+import ForgotPassword from '../pages/ForgotPassword';
 import RegisterStudent from '../pages/RegisterStudent';
 import RegisterAlumni from '../pages/RegisterAlumni';
 import Dashboard from '../pages/Dashboard';
+import Profile from '../pages/Profile';
 import Opportunities from '../pages/Opportunities';
 import OpportunityDetails from '../pages/OpportunityDetails';
 import MyOpportunities from '../pages/MyOpportunities';
@@ -17,6 +19,8 @@ import Recommendations from '../pages/Recommendations';
 import AdminPanel from '../pages/AdminPanel';
 import HeadAdminPanel from '../pages/HeadAdminPanel';
 import AlumniApproval from '../pages/AlumniApproval';
+import AlumniDirectory from '../pages/AlumniDirectory';
+import Messages from '../pages/Messages';
 import SetupPassword from '../pages/SetupPassword';
 
 const AppRoutes = () => {
@@ -25,6 +29,7 @@ const AppRoutes = () => {
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/register-student" element={<RegisterStudent />} />
         <Route path="/register-alumni" element={<RegisterAlumni />} />
 
@@ -33,7 +38,7 @@ const AppRoutes = () => {
 
         {/* Protected Routes encapsulated in visual Layout */}
         <Route element={<Layout />}>
-          
+
           {/* Forced action route */}
           <Route path="/setup-password" element={<SetupPassword />} />
 
@@ -43,7 +48,13 @@ const AppRoutes = () => {
               <Dashboard />
             </ProtectedRoute>
           } />
-          
+
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
+
           <Route path="/opportunities" element={
             <ProtectedRoute>
               <Opportunities />
@@ -57,8 +68,20 @@ const AppRoutes = () => {
           } />
 
           <Route path="/recommendations" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['INSTRUCTOR', 'ALUMNI', 'ADMIN', 'HEAD_ADMIN']}>
               <Recommendations />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/alumni-directory" element={
+            <ProtectedRoute allowedRoles={['ALUMNI', 'STUDENT']}>
+              <AlumniDirectory />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/messages" element={
+            <ProtectedRoute>
+              <Messages />
             </ProtectedRoute>
           } />
 
@@ -90,7 +113,7 @@ const AppRoutes = () => {
             </ProtectedRoute>
           } />
         </Route>
-        
+
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

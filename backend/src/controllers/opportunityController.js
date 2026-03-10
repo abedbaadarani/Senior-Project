@@ -1,4 +1,5 @@
 import opportunityRepository from '../data/opportunityRepository.js';
+import bookmarkRepository from '../data/bookmarkRepository.js';
 import auditLogService from '../services/auditLogService.js';
 
 export const createOpportunity = async (req, res) => {
@@ -143,11 +144,39 @@ export const deleteOpportunity = async (req, res) => {
     }
 
     await opportunityRepository.delete(opportunityId);
-    
+
     auditLogService.logAction(req.user, 'delete-opportunity', 'OPPORTUNITY', opportunityId);
 
     res.status(200).json({ message: 'Opportunity deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to delete opportunity' });
+  }
+};
+
+export const toggleBookmark = async (req, res) => {
+  try {
+    const opportunityId = parseInt(req.params.id, 10);
+    const userId = req.user.id;
+
+    const isBookmarked = await bookmarkRepository.checkBookmark(userId, opportunityId);
+
+    if (isBookmarked) {
+      await bookmarkRepository.removeBookmark(userId, opportunityId);
+      res.status(200).json({ message: 'Bookmark removed', bookmarked: false });
+    } else {
+      await bookmarkRepository.addBookmark(userId, opportunityId);
+      res.status(200).json({ message: 'Opportunity bookmarked', bookmarked: true });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to toggle bookmark' });
+  }
+};
+
+export const getBookmarks = async (req, res) => {
+  try {
+    const bookmarks = await bookmarkRepository.getBookmarksByUser(req.user.id);
+    res.status(200).json(bookmarks);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch bookmarks' });
   }
 };
