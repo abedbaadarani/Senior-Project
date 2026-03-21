@@ -1,8 +1,9 @@
+/* Global base — Layout.css defines the full design system for the app shell */
 :root {
-  --primary-color: #2c3e50;
-  --secondary-color: #ecf0f1;
-  --accent-color: #3498db;
-  --text-color: #333;
+  --primary-color: #0f172a;
+  --secondary-color: #f1f5f9;
+  --accent-color:  #f97316;
+  --text-color:    #0f172a;
 }
 
 * {

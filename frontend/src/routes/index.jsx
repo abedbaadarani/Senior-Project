@@ -18,6 +18,7 @@ import MyOpportunities from '../pages/MyOpportunities';
 import Recommendations from '../pages/Recommendations';
 import AdminPanel from '../pages/AdminPanel';
 import HeadAdminPanel from '../pages/HeadAdminPanel';
+import AuditLog from '../pages/AuditLog';
 import AlumniApproval from '../pages/AlumniApproval';
 import AlumniDirectory from '../pages/AlumniDirectory';
 import Messages from '../pages/Messages';
@@ -50,7 +51,7 @@ const AppRoutes = () => {
           } />
 
           <Route path="/profile" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['STUDENT', 'ALUMNI']}>
               <Profile />
             </ProtectedRoute>
           } />
@@ -110,6 +111,12 @@ const AppRoutes = () => {
           <Route path="/head-admin" element={
             <ProtectedRoute allowedRoles={['HEAD_ADMIN']}>
               <HeadAdminPanel />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/audit-log" element={
+            <ProtectedRoute allowedRoles={['HEAD_ADMIN']}>
+              <AuditLog />
             </ProtectedRoute>
           } />
         </Route>
