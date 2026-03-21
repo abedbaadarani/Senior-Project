@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import client from '../api/client';
 import { Link } from 'react-router-dom';
+import EmptyState from '../components/EmptyState';
+import { CardSkeleton } from '../components/Skeleton';
 
 const Recommendations = () => {
   const { user } = useAuth();
@@ -43,11 +45,13 @@ const Recommendations = () => {
 
   if (user?.role === 'ADMIN' && recommendations.length === 0 && !loading) {
     return (
-      <div>
+      <div style={{ paddingBottom: '40px' }}>
         <h1 className="page-title">Recommendations Overview</h1>
-        <div className="card" style={{ textAlign: 'center', padding: '48px' }}>
-          <h3 style={{ color: 'var(--text-muted)' }}>Admins manage accounts; currently no recommendations exist in the system.</h3>
-        </div>
+        <EmptyState 
+          icon="📋" 
+          title="No recommendations yet" 
+          message="There are currently no recommendations in the system."
+        />
       </div>
     );
   }
@@ -68,11 +72,17 @@ const Recommendations = () => {
       {error && <div className="error-message">{error}</div>}
 
       {loading ? (
-        <p>Loading recommendations...</p>
-      ) : recommendations.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: '48px' }}>
-          <h3 style={{ color: 'var(--text-muted)' }}>No recommendations found.</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
         </div>
+      ) : recommendations.length === 0 ? (
+        <EmptyState 
+          icon="📝" 
+          title="No recommendations found" 
+          message="When instructors endorse students for opportunities, they will appear here."
+        />
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {recommendations.map((rec) => (

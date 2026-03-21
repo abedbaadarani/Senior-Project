@@ -78,13 +78,14 @@ const NotificationsDropdown = () => {
 
             {isOpen && (
                 <div className="notifications-menu" style={{
-                    position: 'absolute', right: 0, top: '100%', marginTop: '8px',
-                    background: 'white', borderRadius: '8px', width: '300px',
-                    boxShadow: '0 10px 25px rgba(0,0,0,0.2)', zIndex: 100, border: '1px solid #e2e8f0',
-                    maxHeight: '400px', display: 'flex', flexDirection: 'column'
+                    position: 'absolute', right: 0, top: '100%', marginTop: '12px',
+                    background: 'var(--header-bg)', borderRadius: '12px', width: '320px',
+                    boxShadow: 'var(--shadow-lg)', zIndex: 100, border: '1px solid var(--border-color)',
+                    backdropFilter: 'blur(16px)', maxHeight: '400px', display: 'flex', flexDirection: 'column',
+                    overflow: 'hidden'
                 }}>
-                    <div style={{ padding: '12px 16px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h4 style={{ margin: 0, color: '#0f172a' }}>Notifications</h4>
+                    <div style={{ padding: '16px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h4 style={{ margin: 0, color: 'var(--text-light)', fontSize: '1.05rem' }}>Notifications</h4>
                         {unreadCount > 0 && (
                             <button
                                 onClick={handleMarkAllAsRead}
@@ -95,33 +96,37 @@ const NotificationsDropdown = () => {
                         )}
                     </div>
 
-                    <div style={{ overflowY: 'auto', flex: 1, padding: '0' }}>
+                    <div style={{ overflowY: 'auto', flex: 1, padding: '0', background: 'rgba(0,0,0,0.2)' }}>
                         {notifications.length === 0 ? (
-                            <p style={{ padding: '16px', margin: 0, textAlign: 'center', color: '#64748b', fontSize: '0.9rem' }}>
-                                No notifications yet.
-                            </p>
+                            <div style={{ padding: '32px 16px', textAlign: 'center' }}>
+                                <div style={{ fontSize: '2rem', opacity: 0.5, marginBottom: '8px' }}>📭</div>
+                                <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                                    No notifications yet.
+                                </p>
+                            </div>
                         ) : (
                             notifications.map(notif => (
                                 <div
                                     key={notif.id}
                                     onClick={(e) => handleMarkAsRead(notif.id, notif.link, e)}
                                     style={{
-                                        padding: '12px 16px',
-                                        borderBottom: '1px solid #f1f5f9',
-                                        background: notif.isRead ? 'white' : '#f0f9ff',
+                                        padding: '16px',
+                                        borderBottom: '1px solid rgba(255,255,255,0.03)',
+                                        background: notif.isRead ? 'transparent' : 'rgba(249,115,22,0.08)',
                                         cursor: 'pointer',
                                         transition: 'background 0.2s',
+                                        borderLeft: notif.isRead ? '3px solid transparent' : '3px solid var(--primary-color)'
                                     }}
-                                    onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
-                                    onMouseLeave={e => e.currentTarget.style.background = notif.isRead ? 'white' : '#f0f9ff'}
+                                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                                    onMouseLeave={e => e.currentTarget.style.background = notif.isRead ? 'transparent' : 'rgba(249,115,22,0.08)'}
                                 >
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                        <strong style={{ color: '#0f172a', fontSize: '0.9rem' }}>{notif.title}</strong>
-                                        {!notif.isRead && <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#3b82f6', display: 'inline-block' }}></span>}
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                        <strong style={{ color: notif.isRead ? 'var(--text-light)' : '#fff', fontSize: '0.9rem', lineHeight: '1.3' }}>{notif.title}</strong>
+                                        {!notif.isRead && <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary-color)', display: 'inline-block', flexShrink: 0, marginTop: '4px' }}></span>}
                                     </div>
-                                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#475569', lineHeight: '1.4' }}>{notif.message}</p>
-                                    <small style={{ color: '#94a3b8', fontSize: '0.75rem', marginTop: '6px', display: 'block' }}>
-                                        {new Date(notif.createdAt).toLocaleDateString()} {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>{notif.message}</p>
+                                    <small style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.75rem', marginTop: '8px', display: 'block' }}>
+                                        {new Date(notif.createdAt).toLocaleDateString()} at {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </small>
                                 </div>
                             ))

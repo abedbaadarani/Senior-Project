@@ -103,11 +103,11 @@ const AuditLog = () => {
           style={{
             display: 'flex', alignItems: 'center', gap: '6px',
             padding: '9px 18px', borderRadius: '8px', border: '1px solid var(--border-color)',
-            background: '#fff', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem',
+            background: 'var(--bg-color)', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem',
             color: 'var(--text-color)', transition: 'background 0.2s',
           }}
-          onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
-          onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-color)'}
         >
           🔄 Refresh
         </button>
@@ -131,7 +131,7 @@ const AuditLog = () => {
               style={{
                 padding: '6px 14px', borderRadius: '99px', border: '1px solid',
                 borderColor: filter === cat.value ? 'var(--primary-color)' : 'var(--border-color)',
-                background: filter === cat.value ? 'var(--primary-color)' : '#fff',
+                background: filter === cat.value ? 'var(--primary-color)' : 'transparent',
                 color: filter === cat.value ? '#fff' : 'var(--text-muted)',
                 fontWeight: '600', fontSize: '0.8rem', cursor: 'pointer', transition: 'all 0.2s',
               }}
@@ -144,7 +144,7 @@ const AuditLog = () => {
 
       {/* Summary bar */}
       <div style={{
-        background: '#f8fafc', border: '1px solid var(--border-color)',
+        background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-color)',
         borderRadius: '10px', padding: '12px 20px', marginBottom: '20px',
         display: 'flex', gap: '24px', flexWrap: 'wrap', fontSize: '0.85rem', color: 'var(--text-muted)'
       }}>
@@ -180,7 +180,7 @@ const AuditLog = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
               <thead>
                 <tr style={{
-                  background: '#f8fafc', borderBottom: '2px solid var(--border-color)',
+                  background: 'rgba(255,255,255,0.03)', borderBottom: '2px solid var(--border-color)',
                   textAlign: 'left'
                 }}>
                   {['Time', 'Action', 'Actor', 'Target / Details'].map(col => (
@@ -198,7 +198,7 @@ const AuditLog = () => {
                       borderBottom: '1px solid var(--border-color)',
                       transition: 'background 0.15s',
                     }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                   >
                     {/* Time */}
@@ -225,7 +225,7 @@ const AuditLog = () => {
                     <td style={{ padding: '14px 16px' }}>
                       <span style={{
                         display: 'inline-block', padding: '2px 9px', borderRadius: '99px',
-                        background: '#f1f5f9', color: 'var(--text-muted)',
+                        background: 'rgba(0,0,0,0.1)', color: 'var(--text-muted)',
                         fontSize: '0.75rem', fontWeight: '700', marginBottom: '4px'
                       }}>
                         {log.actorRole?.replace('_', ' ')}

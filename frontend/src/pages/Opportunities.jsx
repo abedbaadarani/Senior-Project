@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import client from '../api/client';
 import FilterBar from '../components/FilterBar';
 import OpportunityCard from '../components/OpportunityCard';
+import EmptyState from '../components/EmptyState';
+import { CardSkeleton } from '../components/Skeleton';
 import '../styles/Opportunities.css';
 
 const Opportunities = () => {
@@ -56,11 +58,18 @@ const Opportunities = () => {
       <FilterBar onFilterChange={fetchOpportunities} />
 
       {loading ? (
-        <p>Loading opportunities...</p>
-      ) : opportunities.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: '48px' }}>
-          <h3 style={{ color: 'var(--text-muted)' }}>No opportunities match your search.</h3>
+        <div className="opportunities-grid">
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
+          <CardSkeleton />
         </div>
+      ) : opportunities.length === 0 ? (
+        <EmptyState 
+          icon="🧳" 
+          title="No opportunities found" 
+          message="Adjust your search filters or check back later for new postings." 
+        />
       ) : (
         <div className="opportunities-grid">
           {opportunities.map(opp => (

@@ -3,46 +3,87 @@ import { useAuth } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import client from '../api/client';
 import OpportunityCard from '../components/OpportunityCard';
+import GlobalEmptyState from '../components/EmptyState';
+import { ListSkeleton } from '../components/Skeleton';
 import '../styles/Layout.css';
 import '../styles/Opportunities.css';
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend,
+  AreaChart, Area, CartesianGrid,
+} from 'recharts';
+
+// ─── Chart theme constants ──────────────────────────────────────────────────
+const CHART_COLORS = ['#f97316', '#6366f1', '#10b981', '#3b82f6', '#dc2626', '#a855f7'];
+
+const chartTooltipStyle = {
+  contentStyle: {
+    background: 'rgba(15,23,42,0.92)',
+    border: '1px solid rgba(255,255,255,0.10)',
+    borderRadius: '10px',
+    color: '#e2e8f0',
+    fontSize: '0.82rem',
+    backdropFilter: 'blur(12px)',
+  },
+  labelStyle: { color: '#94a3b8', fontWeight: 600 },
+  cursor: { fill: 'rgba(255,255,255,0.04)' },
+};
+
+const ChartCard = ({ title, children, style = {} }) => (
+  <div style={{
+    background: 'rgba(255,255,255,0.06)',
+    border: '1px solid rgba(255,255,255,0.10)',
+    borderRadius: '14px',
+    padding: '20px 24px',
+    backdropFilter: 'blur(16px)',
+    boxShadow: '0 4px 24px rgba(0,0,0,0.25)',
+    ...style,
+  }}>
+    <p style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.4)', marginBottom: '16px' }}>
+      {title}
+    </p>
+    {children}
+  </div>
+);
 
 // ─── Shared helpers ────────────────────────────────────────────────────────────
 
-const StatCard = ({ icon, label, value, color = 'var(--primary-color)', sub }) => (
+const StatCard = ({ icon, label, value, color = 'var(--primary-color)', sub, onClick }) => (
   <div style={{
-    background: '#fff',
+    background: 'rgba(255,255,255,0.07)',
     borderRadius: '14px',
     padding: '20px 24px',
     flex: '1 1 140px',
-    border: '1px solid var(--border-color)',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+    border: '1px solid rgba(255,255,255,0.10)',
+    boxShadow: '0 4px 24px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
     display: 'flex',
     flexDirection: 'column',
     gap: '6px',
-    transition: 'transform 0.2s, box-shadow 0.2s',
+    transition: 'transform 0.2s, box-shadow 0.2s, background 0.2s',
+    cursor: onClick ? 'pointer' : 'default',
   }}
-    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.10)'; }}
-    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)'; }}
+    onClick={onClick}
+    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.35)'; e.currentTarget.style.background = 'rgba(255,255,255,0.10)'; }}
+    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 24px rgba(0,0,0,0.25)'; e.currentTarget.style.background = 'rgba(255,255,255,0.07)'; }}
   >
     <span style={{ fontSize: '1.6rem' }}>{icon}</span>
     <span style={{ fontSize: '2rem', fontWeight: '800', color, lineHeight: 1 }}>{value ?? '—'}</span>
-    <span style={{ fontSize: '0.82rem', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</span>
-    {sub && <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{sub}</span>}
+    <span style={{ fontSize: '0.82rem', fontWeight: '600', color: 'rgba(255,255,255,0.45)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{label}</span>
+    {sub && <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.3)' }}>{sub}</span>}
   </div>
 );
 
 const SectionTitle = ({ children, action }) => (
   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-    <h2 style={{ margin: 0, fontSize: '1.15rem', fontWeight: '700', color: 'var(--primary-color)' }}>{children}</h2>
+    <h2 style={{ margin: 0, fontSize: '1.15rem', fontWeight: '700', color: '#e2e8f0' }}>{children}</h2>
     {action}
   </div>
 );
 
 const EmptyState = ({ icon, text }) => (
-  <div style={{ textAlign: 'center', padding: '32px 16px', color: 'var(--text-muted)' }}>
-    <div style={{ fontSize: '2.4rem', marginBottom: '8px' }}>{icon}</div>
-    <p style={{ margin: 0, fontSize: '0.95rem' }}>{text}</p>
-  </div>
+  <GlobalEmptyState icon={icon} title="" message={text} />
 );
 
 const statusColor = (s) => ({
@@ -50,8 +91,8 @@ const statusColor = (s) => ({
   REVIEWED: { bg: '#dbeafe', text: '#2563eb' },
   INTERVIEWING: { bg: '#ede9fe', text: '#7c3aed' },
   ACCEPTED: { bg: '#d1fae5', text: '#059669' },
-  REJECTED: { bg: '#fee2e2', text: '#dc2626' },
-}[s] || { bg: '#f1f5f9', text: '#64748b' });
+  REJECTED: { bg: 'rgba(239,68,68,0.15)', text: '#ef4444' },
+}[s] || { bg: 'rgba(255,255,255,0.05)', text: '#94a3b8' });
 
 // ── Greeting ───────────────────────────────────────────────────────────────────
 const greet = () => {
@@ -69,6 +110,8 @@ const HeadAdminDashboard = ({ user }) => {
   const [users, setUsers] = useState([]);
   const [opps, setOpps] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [usersModalFilter, setUsersModalFilter] = useState(null); // 'ALL' | 'STUDENT' | 'ALUMNI' | 'INSTRUCTOR' | 'ADMIN' | null
+  const [usersModalSearch, setUsersModalSearch] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -104,13 +147,96 @@ const HeadAdminDashboard = ({ user }) => {
 
       {/* Stats row */}
       <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '36px' }}>
-        <StatCard icon="👥" label="Total Users" value={loading ? '…' : users.length} color="#2563eb" />
-        <StatCard icon="🎓" label="Students" value={loading ? '…' : roleCount('STUDENT')} color="#7c3aed" />
-        <StatCard icon="🏅" label="Alumni" value={loading ? '…' : roleCount('ALUMNI')} color="#059669" />
-        <StatCard icon="👨‍🏫" label="Instructors" value={loading ? '…' : roleCount('INSTRUCTOR')} color="#d97706" />
-        <StatCard icon="🛡️" label="Admins" value={loading ? '…' : roleCount('ADMIN')} color="#dc2626" />
+        <StatCard 
+          icon="👥" 
+          label="Total Users" 
+          value={loading ? '…' : users.length} 
+          color="#2563eb" 
+          onClick={() => setUsersModalFilter('ALL')} 
+        />
+        <StatCard icon="🎓" label="Students" value={loading ? '…' : roleCount('STUDENT')} color="#7c3aed" onClick={() => setUsersModalFilter('STUDENT')} />
+        <StatCard icon="🏅" label="Alumni" value={loading ? '…' : roleCount('ALUMNI')} color="#059669" onClick={() => setUsersModalFilter('ALUMNI')} />
+        <StatCard icon="👨‍🏫" label="Instructors" value={loading ? '…' : roleCount('INSTRUCTOR')} color="#d97706" onClick={() => setUsersModalFilter('INSTRUCTOR')} />
+        <StatCard icon="🛡️" label="Admins" value={loading ? '…' : roleCount('ADMIN')} color="#dc2626" onClick={() => setUsersModalFilter('ADMIN')} />
         <StatCard icon="💼" label="Opportunities" value={loading ? '…' : opps.length} color="#0891b2" />
       </div>
+
+      {/* ── Charts row ── */}
+      {!loading && users.length > 0 && (
+        <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginBottom: '36px' }}>
+
+          {/* Bar chart — Users by role */}
+          <ChartCard title="👥 Users by Role" style={{ flex: '1 1 340px' }}>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={[
+                { role: 'Students',    count: roleCount('STUDENT')    },
+                { role: 'Alumni',      count: roleCount('ALUMNI')      },
+                { role: 'Instructors', count: roleCount('INSTRUCTOR')  },
+                { role: 'Admins',      count: roleCount('ADMIN')       },
+              ]} barSize={32}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <XAxis dataKey="role" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis allowDecimals={false} tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} width={28} />
+                <Tooltip {...chartTooltipStyle} />
+                <Bar dataKey="count" radius={[6,6,0,0]}>
+                  {['#f97316','#10b981','#6366f1','#dc2626'].map((c,i) => <Cell key={i} fill={c} />)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+
+          {/* Pie — Opportunity types */}
+          <ChartCard title="💼 Opportunity Types" style={{ flex: '1 1 280px' }}>
+            {(() => {
+              const types = opps.reduce((acc, o) => { acc[o.type] = (acc[o.type] || 0) + 1; return acc; }, {});
+              const pieData = Object.entries(types).map(([name, value]) => ({ name, value }));
+              if (!pieData.length) return <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.85rem', textAlign: 'center', paddingTop: '60px' }}>No opportunities yet</p>;
+              return (
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} paddingAngle={3} label={({ name, percent }) => `${name} ${(percent*100).toFixed(0)}%`} labelLine={false} style={{ fontSize: '10px', fill: '#94a3b8' }}>
+                      {pieData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip {...chartTooltipStyle} />
+                  </PieChart>
+                </ResponsiveContainer>
+              );
+            })()}
+          </ChartCard>
+
+          {/* Area chart — Registrations over time */}
+          <ChartCard title="📈 User Registrations Over Time" style={{ flex: '2 1 400px' }}>
+            {(() => {
+              const byMonth = users.reduce((acc, u) => {
+                const d = new Date(u.createdAt);
+                const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+                acc[key] = (acc[key] || 0) + 1;
+                return acc;
+              }, {});
+              const areaData = Object.entries(byMonth).sort(([a],[b]) => a.localeCompare(b)).slice(-8).map(([month, count]) => ({ month: month.slice(5), count }));
+              if (areaData.length < 2) return <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.85rem', textAlign: 'center', paddingTop: '60px' }}>Not enough data yet</p>;
+              return (
+                <ResponsiveContainer width="100%" height={200}>
+                  <AreaChart data={areaData}>
+                    <defs>
+                      <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#f97316" stopOpacity={0.25} />
+                        <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                    <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis allowDecimals={false} tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} width={28} />
+                    <Tooltip {...chartTooltipStyle} />
+                    <Area type="monotone" dataKey="count" stroke="#f97316" strokeWidth={2} fill="url(#areaGrad)" dot={{ fill: '#f97316', r: 3 }} activeDot={{ r: 5 }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              );
+            })()}
+          </ChartCard>
+
+        </div>
+      )}
 
       <div style={{ display: 'flex', gap: '28px', flexWrap: 'wrap' }}>
         {/* Recent Activity Feed */}
@@ -125,7 +251,11 @@ const HeadAdminDashboard = ({ user }) => {
             </SectionTitle>
 
             {loading ? (
-              <p style={{ color: 'var(--text-muted)' }}>Loading activity…</p>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <ListSkeleton />
+                <ListSkeleton />
+                <ListSkeleton />
+              </div>
             ) : logs.length === 0 ? (
               <EmptyState icon="📭" text="No system activity recorded yet." />
             ) : (
@@ -176,7 +306,7 @@ const HeadAdminDashboard = ({ user }) => {
                     <span>{icon} {label}</span>
                     <span style={{ fontWeight: '700', color }}>{count}</span>
                   </div>
-                  <div style={{ background: '#f1f5f9', borderRadius: '99px', height: '6px', overflow: 'hidden' }}>
+                  <div style={{ background: 'rgba(255,255,255,0.1)', borderRadius: '99px', height: '6px', overflow: 'hidden' }}>
                     <div style={{ width: `${pct}%`, height: '100%', background: color, borderRadius: '99px', transition: 'width 0.6s ease' }} />
                   </div>
                 </div>
@@ -198,6 +328,124 @@ const HeadAdminDashboard = ({ user }) => {
           </div>
         </div>
       </div>
+
+      {/* ── Users Modal ── */}
+      {usersModalFilter && (() => {
+        let filteredUsers = usersModalFilter === 'ALL' ? users : users.filter(u => u.role === usersModalFilter);
+        
+        if (usersModalSearch.trim()) {
+          const lower = usersModalSearch.toLowerCase();
+          filteredUsers = filteredUsers.filter(u => 
+            (u.name && u.name.toLowerCase().includes(lower)) || 
+            (u.email && u.email.toLowerCase().includes(lower)) ||
+            (u.universityId && u.universityId.toLowerCase().includes(lower))
+          );
+        }
+
+        const titleMap = {
+          'ALL': '👥 Total Registered Users',
+          'STUDENT': '🎓 Registered Students',
+          'ALUMNI': '🏅 Registered Alumni',
+          'INSTRUCTOR': '👨‍🏫 Registered Instructors',
+          'ADMIN': '🛡️ System Admins'
+        };
+
+        return (
+          <div style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(0, 0, 0, 0.7)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 9999,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'
+          }}>
+            <div style={{
+              background: '#0f172a',
+              border: '1px solid rgba(255,255,255,0.15)',
+              borderRadius: '20px',
+              width: '100%', maxWidth: '800px',
+              maxHeight: '85vh',
+              display: 'flex', flexDirection: 'column',
+              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.7)',
+              overflow: 'hidden'
+            }}>
+              <div style={{ padding: '24px 32px', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#1e293b' }}>
+                <div>
+                  <h2 style={{ margin: 0, fontSize: '1.4rem', color: '#f8fafc' }}>{titleMap[usersModalFilter]}</h2>
+                  <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{filteredUsers.length} members found</span>
+                </div>
+                <button 
+                  onClick={() => {
+                    setUsersModalFilter(null);
+                    setUsersModalSearch('');
+                  }}
+                  style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#f8fafc', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', transition: 'background 0.2s' }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(239,68,68,0.2)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Search Bar */}
+              <div style={{ padding: '16px 32px', background: '#0f172a', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <input 
+                  type="text" 
+                  placeholder={`🔍 Search ${filteredUsers.length} users by name, email, or ID...`}
+                  value={usersModalSearch}
+                  onChange={e => setUsersModalSearch(e.target.value)}
+                  style={{ 
+                    width: '100%', padding: '12px 16px', borderRadius: '12px', 
+                    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', 
+                    color: '#f8fafc', outline: 'none', transition: 'border-color 0.2s' 
+                  }}
+                  onFocus={e => e.target.style.borderColor = 'var(--primary-color)'}
+                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+                />
+              </div>
+              
+              <div style={{ padding: '0', overflowY: 'auto', flex: 1 }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
+                  <thead style={{ position: 'sticky', top: 0, background: '#1e293b', zIndex: 10 }}>
+                    <tr>
+                      <th style={{ padding: '16px 32px', textAlign: 'left', fontWeight: 'bold', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '2px solid rgba(255,255,255,0.1)', color: '#94a3b8' }}>Name / Email</th>
+                      <th style={{ padding: '16px 32px', textAlign: 'left', fontWeight: 'bold', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '2px solid rgba(255,255,255,0.1)', color: '#94a3b8' }}>Role</th>
+                      <th style={{ padding: '16px 32px', textAlign: 'left', fontWeight: 'bold', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', borderBottom: '2px solid rgba(255,255,255,0.1)', color: '#94a3b8' }}>Joined</th>
+                    </tr>
+                  </thead>
+                  <tbody style={{ background: '#0f172a' }}>
+                    {filteredUsers.map(u => (
+                      <tr key={u.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'background 0.2s' }} onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'} onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                        <td style={{ padding: '16px 32px' }}>
+                          <div style={{ fontWeight: '600', color: '#f8fafc', fontSize: '0.95rem', marginBottom: '4px' }}>{u.name}</div>
+                          <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{u.email}</div>
+                        </td>
+                        <td style={{ padding: '16px 32px' }}>
+                          <span style={{
+                            display: 'inline-block', padding: '4px 12px', borderRadius: '99px',
+                            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
+                            color: '#94a3b8', fontSize: '0.75rem', fontWeight: '700', letterSpacing: '0.05em'
+                          }}>
+                            {u.role.replace('_', ' ')}
+                          </span>
+                        </td>
+                        <td style={{ padding: '16px 32px', color: '#94a3b8', fontSize: '0.85rem' }}>
+                          {new Date(u.createdAt).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {filteredUsers.length === 0 && (
+                  <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
+                    No users found via this filter.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
     </div>
   );
 };
@@ -238,6 +486,55 @@ const AdminDashboard = ({ user }) => {
         <StatCard icon="💼" label="Opportunities" value={loading ? '…' : opps.length} color="#0891b2" />
       </div>
 
+      {/* ── Charts row ── */}
+      {!loading && users.length > 0 && (
+        <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginBottom: '36px' }}>
+
+          {/* Pie chart — Role distribution */}
+          <ChartCard title="🎯 Role Distribution" style={{ flex: '1 1 280px' }}>
+            {(() => {
+              const pieData = [
+                { name: 'Students',    value: roleCount('STUDENT'),    color: '#7c3aed' },
+                { name: 'Alumni',      value: roleCount('ALUMNI'),      color: '#10b981' },
+                { name: 'Instructors', value: roleCount('INSTRUCTOR'),  color: '#3b82f6' },
+              ].filter(d => d.value > 0);
+              if (!pieData.length) return <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.85rem', textAlign: 'center', paddingTop: '60px' }}>No users yet</p>;
+              return (
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={4}>
+                      {pieData.map((d, i) => <Cell key={i} fill={d.color} />)}
+                    </Pie>
+                    <Tooltip {...chartTooltipStyle} />
+                    <Legend wrapperStyle={{ fontSize: '0.78rem', color: '#94a3b8', paddingTop: '8px' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              );
+            })()}
+          </ChartCard>
+
+          {/* Bar chart — Active vs Closed opportunities */}
+          <ChartCard title="📌 Opportunities Status" style={{ flex: '1 1 340px' }}>
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={[
+                { status: 'Active',  count: opps.filter(o => o.status !== 'CLOSED').length },
+                { status: 'Closed', count: opps.filter(o => o.status === 'CLOSED').length },
+              ]} barSize={48}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <XAxis dataKey="status" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} />
+                <YAxis allowDecimals={false} tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} width={28} />
+                <Tooltip {...chartTooltipStyle} />
+                <Bar dataKey="count" radius={[8,8,0,0]}>
+                  <Cell fill="#10b981" />
+                  <Cell fill="#ef4444" />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+
+        </div>
+      )}
+
       <div style={{ display: 'flex', gap: '28px', flexWrap: 'wrap' }}>
         <div style={{ flex: '1 1 400px' }}>
           <div className="card" style={{ margin: 0 }}>
@@ -246,7 +543,13 @@ const AdminDashboard = ({ user }) => {
             }>
               🆕 Recently Joined Users
             </SectionTitle>
-            {loading ? <p style={{ color: 'var(--text-muted)' }}>Loading…</p> : recentUsers.length === 0 ? (
+            {loading ? (
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <ListSkeleton />
+                <ListSkeleton />
+                <ListSkeleton />
+              </div>
+            ) : recentUsers.length === 0 ? (
               <EmptyState icon="👤" text="No users yet." />
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
@@ -598,22 +901,23 @@ const StudentDashboard = ({ user }) => {
       {/* Profile completion banner */}
       {completion < 100 && (
         <div className="card" style={{
-          margin: '0 0 28px 0', background: 'linear-gradient(135deg, #eff6ff, #f5f3ff)',
-          border: '1px solid #bfdbfe', boxShadow: 'none'
+          margin: '0 0 28px 0',
+          background: 'linear-gradient(135deg, rgba(37,99,235,0.18), rgba(124,58,237,0.14))',
+          border: '1px solid rgba(99,102,241,0.30)',
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
             <div>
-              <h3 style={{ margin: 0, color: '#1d4ed8', fontSize: '1rem' }}>Complete your profile to stand out! ✨</h3>
-              <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: '#3b82f6' }}>
+              <h3 style={{ margin: 0, color: '#a5b4fc', fontSize: '1rem' }}>Complete your profile to stand out! ✨</h3>
+              <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: 'rgba(165,180,252,0.7)' }}>
                 {completion < 50 ? 'Add your major, CV, and LinkedIn to attract opportunities.' : 'Almost there! Just a few more details to reach 100%.'}
               </p>
             </div>
-            <span style={{ fontSize: '1.6rem', fontWeight: '900', color: '#1d4ed8' }}>{completion}%</span>
+            <span style={{ fontSize: '1.6rem', fontWeight: '900', color: '#a5b4fc' }}>{completion}%</span>
           </div>
-          <div style={{ background: '#dbeafe', borderRadius: '99px', height: '8px', overflow: 'hidden' }}>
-            <div style={{ width: `${completion}%`, height: '100%', background: 'linear-gradient(90deg, #2563eb, #7c3aed)', borderRadius: '99px', transition: 'width 0.6s ease' }} />
+          <div style={{ background: 'rgba(99,102,241,0.20)', borderRadius: '99px', height: '8px', overflow: 'hidden' }}>
+            <div style={{ width: `${completion}%`, height: '100%', background: 'linear-gradient(90deg, #6366f1, #8b5cf6)', borderRadius: '99px', transition: 'width 0.6s ease' }} />
           </div>
-          <Link to="/profile" style={{ display: 'inline-block', marginTop: '12px', fontSize: '0.85rem', color: '#1d4ed8', fontWeight: '700', textDecoration: 'none' }}>
+          <Link to="/profile" style={{ display: 'inline-block', marginTop: '12px', fontSize: '0.85rem', color: '#818cf8', fontWeight: '700', textDecoration: 'none' }}>
             Update Profile →
           </Link>
         </div>

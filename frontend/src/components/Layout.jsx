@@ -211,6 +211,9 @@ const Layout = () => {
         )}
 
         <main className="content">
+          {/* Decorative animated background orbs */}
+          <div className="content-orb-2" aria-hidden="true" />
+          <div className="content-orb-3" aria-hidden="true" />
           <Outlet />
         </main>
       </div>

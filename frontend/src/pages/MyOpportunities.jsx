@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import client from '../api/client';
 import OpportunityCard from '../components/OpportunityCard';
 import OpportunityForm from '../components/OpportunityForm';
+import EmptyState from '../components/EmptyState';
+import { CardSkeleton } from '../components/Skeleton';
 import '../styles/Opportunities.css';
 
 const MyOpportunities = () => {
@@ -63,12 +65,17 @@ const MyOpportunities = () => {
       ) : (
         <>
           {loading ? (
-            <p>Loading your posts...</p>
-          ) : opportunities.length === 0 ? (
-            <div className="card" style={{ textAlign: 'center', padding: '48px' }}>
-              <h3 style={{ color: 'var(--text-muted)' }}>You haven't posted any opportunities yet.</h3>
-              <p style={{ color: 'var(--text-muted)' }}>Click the button above to create one.</p>
+            <div className="opportunities-grid">
+              <CardSkeleton />
+              <CardSkeleton />
+              <CardSkeleton />
             </div>
+          ) : opportunities.length === 0 ? (
+            <EmptyState 
+              icon="✏️" 
+              title="No posts yet" 
+              message="You haven't posted any opportunities yet. Click the button above to create your first one."
+            />
           ) : (
             <div className="opportunities-grid">
               {opportunities.map(opp => (

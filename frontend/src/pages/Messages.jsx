@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import client from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import { useLocation } from 'react-router-dom';
+import EmptyState from '../components/EmptyState';
+import SkeletonBase, { ListSkeleton } from '../components/Skeleton';
 
 const Messages = () => {
     const { user } = useAuth();
@@ -110,20 +112,26 @@ const Messages = () => {
     const activePartnerDef = conversations.find(c => c.partnerId === activePartnerId)?.partner || location.state?.partner;
 
     return (
-        <div style={{ display: 'flex', height: 'calc(100vh - 120px)', background: 'white', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', border: '1px solid var(--border-color)' }}>
+        <div style={{ display: 'flex', height: 'calc(100vh - 120px)', background: 'rgba(255,255,255,0.02)', borderRadius: '16px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)', backdropFilter: 'blur(16px)' }}>
             {/* Sidebar: Conversations List */}
-            <div style={{ width: '300px', borderRight: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', background: '#f8fafc' }}>
-                <div style={{ padding: '20px', borderBottom: '1px solid var(--border-color)', background: 'white' }}>
-                    <h2 style={{ margin: 0, color: 'var(--primary-color)', fontSize: '1.2rem' }}>Direct Messages</h2>
+            <div style={{ width: '300px', borderRight: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', background: 'rgba(0,0,0,0.2)' }}>
+                <div style={{ padding: '20px', borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)' }}>
+                    <h2 style={{ margin: 0, color: '#e2e8f0', fontSize: '1.2rem' }}>Direct Messages</h2>
                 </div>
 
                 <div style={{ flex: 1, overflowY: 'auto' }}>
                     {loadingConv ? (
-                        <p style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)' }}>Loading...</p>
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <ListSkeleton />
+                            <ListSkeleton />
+                            <ListSkeleton />
+                            <ListSkeleton />
+                            <ListSkeleton />
+                        </div>
                     ) : conversations.length === 0 && !location.state?.partnerId ? (
-                        <p style={{ padding: '20px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                            No active conversations. Visit the Alumni Directory or an applicant profile to start messaging.
-                        </p>
+                        <div style={{ padding: '20px' }}>
+                            <EmptyState icon="💬" title="No messages" message="Visit the Alumni Directory to start networking." />
+                        </div>
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
                             {/* Insert fake conversation stub if coming from another page to a new partner */}
@@ -132,14 +140,14 @@ const Messages = () => {
                                     onClick={() => setActivePartnerId(location.state.partnerId)}
                                     style={{
                                         padding: '16px 20px',
-                                        borderBottom: '1px solid var(--border-color)',
+                                        borderBottom: '1px solid rgba(255,255,255,0.05)',
                                         cursor: 'pointer',
-                                        background: activePartnerId === location.state.partnerId ? 'white' : 'transparent',
-                                        borderLeft: activePartnerId === location.state.partnerId ? '4px solid var(--primary-color)' : '4px solid transparent',
+                                        background: activePartnerId === location.state.partnerId ? 'rgba(255,255,255,0.08)' : 'transparent',
+                                        borderLeft: activePartnerId === location.state.partnerId ? '4px solid #f97316' : '4px solid transparent',
                                     }}
                                 >
-                                    <h4 style={{ margin: '0 0 4px 0', fontSize: '1rem', color: 'var(--primary-color)' }}>{location.state.partner?.name || 'New Conversation'}</h4>
-                                    <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)' }}>Start a conversation...</p>
+                                    <h4 style={{ margin: '0 0 4px 0', fontSize: '1rem', color: '#f8fafc' }}>{location.state.partner?.name || 'New Conversation'}</h4>
+                                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8' }}>Start a conversation...</p>
                                 </div>
                             )}
 
@@ -149,25 +157,25 @@ const Messages = () => {
                                     onClick={() => setActivePartnerId(conv.partnerId)}
                                     style={{
                                         padding: '16px 20px',
-                                        borderBottom: '1px solid var(--border-color)',
+                                        borderBottom: '1px solid rgba(255,255,255,0.05)',
                                         cursor: 'pointer',
-                                        background: activePartnerId === conv.partnerId ? 'white' : 'transparent',
-                                        borderLeft: activePartnerId === conv.partnerId ? '4px solid var(--primary-color)' : '4px solid transparent',
+                                        background: activePartnerId === conv.partnerId ? 'rgba(255,255,255,0.08)' : 'transparent',
+                                        borderLeft: activePartnerId === conv.partnerId ? '4px solid #f97316' : '4px solid transparent',
                                         transition: 'background 0.2s',
                                         position: 'relative'
                                     }}
-                                    onMouseEnter={e => { if (activePartnerId !== conv.partnerId) e.currentTarget.style.background = '#f1f5f9' }}
+                                    onMouseEnter={e => { if (activePartnerId !== conv.partnerId) e.currentTarget.style.background = 'rgba(255,255,255,0.04)' }}
                                     onMouseLeave={e => { if (activePartnerId !== conv.partnerId) e.currentTarget.style.background = 'transparent' }}
                                 >
                                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                                        <h4 style={{ margin: 0, fontSize: '1rem', color: 'var(--primary-color)' }}>{conv.partner.name}</h4>
+                                        <h4 style={{ margin: 0, fontSize: '1rem', color: '#f8fafc' }}>{conv.partner.name}</h4>
                                         {conv.unreadCount > 0 && (
-                                            <span style={{ background: '#ef4444', color: 'white', borderRadius: '10px', padding: '2px 8px', fontSize: '0.75rem', fontWeight: 'bold' }}>
+                                            <span style={{ background: '#f97316', color: 'white', borderRadius: '10px', padding: '2px 8px', fontSize: '0.75rem', fontWeight: 'bold' }}>
                                                 {conv.unreadCount} new
                                             </span>
                                         )}
                                     </div>
-                                    <p style={{ margin: 0, fontSize: '0.85rem', color: conv.unreadCount > 0 ? '#0f172a' : 'var(--text-muted)', fontWeight: conv.unreadCount > 0 ? '700' : '400', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    <p style={{ margin: 0, fontSize: '0.85rem', color: conv.unreadCount > 0 ? '#fb923c' : '#94a3b8', fontWeight: conv.unreadCount > 0 ? '700' : '400', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                         {conv.latestMessage.senderId === user.id ? 'You: ' : ''}
                                         {conv.latestMessage.content}
                                     </p>
@@ -180,23 +188,34 @@ const Messages = () => {
 
             {/* Main Chat Area */}
             {activePartnerId ? (
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'white' }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'transparent' }}>
                     {/* Chat Header */}
-                    <div style={{ padding: '20px', borderBottom: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ padding: '20px', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.02)' }}>
                         <div>
-                            <h3 style={{ margin: '0 0 4px 0', color: 'var(--primary-color)' }}>{activePartnerDef?.name || 'Loading...'}</h3>
-                            {activePartnerDef?.role && <span className={'badge'} style={{ background: 'var(--secondary-color)', fontSize: '0.75rem', padding: '2px 8px' }}>{activePartnerDef.role}</span>}
+                            <h3 style={{ margin: '0 0 4px 0', color: '#f8fafc' }}>{activePartnerDef?.name || 'Loading...'}</h3>
+                            {activePartnerDef?.role && <span style={{ background: 'rgba(249,115,22,0.15)', color: '#fb923c', border: '1px solid rgba(249,115,22,0.25)', fontSize: '0.75rem', padding: '4px 8px', borderRadius: '6px', fontWeight: 'bold' }}>{activePartnerDef.role}</span>}
                         </div>
                     </div>
 
                     {/* Messages Feed */}
-                    <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', background: '#f8fafc' }}>
+                    <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', background: 'rgba(0,0,0,0.1)' }}>
                         {loadingMsg && messages.length === 0 ? (
-                            <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Loading messages...</p>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                <div style={{ alignSelf: 'flex-start', maxWidth: '70%', background: 'rgba(255,255,255,0.05)', padding: '12px 16px', borderRadius: '16px', borderBottomLeftRadius: '4px' }}>
+                                    <SkeletonBase width="150px" height="16px" style={{ marginBottom: '8px' }} />
+                                    <SkeletonBase width="250px" height="16px" />
+                                </div>
+                                <div style={{ alignSelf: 'flex-end', maxWidth: '70%', background: 'rgba(249,115,22,0.1)', padding: '12px 16px', borderRadius: '16px', borderBottomRightRadius: '4px' }}>
+                                    <SkeletonBase width="200px" height="16px" style={{ marginBottom: '8px' }} />
+                                    <SkeletonBase width="100px" height="16px" />
+                                </div>
+                                <div style={{ alignSelf: 'flex-start', maxWidth: '70%', background: 'rgba(255,255,255,0.05)', padding: '12px 16px', borderRadius: '16px', borderBottomLeftRadius: '4px' }}>
+                                    <SkeletonBase width="180px" height="16px" />
+                                </div>
+                            </div>
                         ) : messages.length === 0 ? (
-                            <div style={{ textAlign: 'center', color: 'var(--text-muted)', marginTop: '40px' }}>
-                                <div style={{ fontSize: '3rem', marginBottom: '16px' }}>👋</div>
-                                <p>No messages here yet. Say hello!</p>
+                            <div style={{ margin: 'auto', maxWidth: '400px' }}>
+                                <EmptyState icon="👋" title="Say Hello!" message="Send the first message to start networking." />
                             </div>
                         ) : (
                             messages.map((msg, idx) => {
@@ -206,17 +225,17 @@ const Messages = () => {
                                 return (
                                     <div key={msg.id} style={{ alignSelf: isMine ? 'flex-end' : 'flex-start', maxWidth: '70%', display: 'flex', flexDirection: 'column', alignItems: isMine ? 'flex-end' : 'flex-start' }}>
                                         {showHeader && (
-                                            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '4px', padding: '0 4px' }}>
+                                            <span style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '4px', padding: '0 4px' }}>
                                                 {isMine ? 'You' : msg.sender?.name} • {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </span>
                                         )}
                                         <div style={{
                                             padding: '12px 16px',
                                             borderRadius: '16px',
-                                            background: isMine ? 'var(--primary-color)' : 'white',
-                                            color: isMine ? 'white' : 'var(--text-dark)',
-                                            border: isMine ? 'none' : '1px solid var(--border-color)',
-                                            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                                            background: isMine ? 'linear-gradient(135deg, #f97316, #ea580c)' : 'rgba(255,255,255,0.05)',
+                                            color: '#f8fafc',
+                                            border: isMine ? 'none' : '1px solid rgba(255,255,255,0.1)',
+                                            boxShadow: isMine ? '0 4px 12px rgba(249,115,22,0.3)' : 'none',
                                             lineHeight: '1.4',
                                             borderBottomRightRadius: isMine ? '4px' : '16px',
                                             borderBottomLeftRadius: isMine ? '16px' : '4px'
@@ -231,7 +250,7 @@ const Messages = () => {
                     </div>
 
                     {/* Message Input Box */}
-                    <div style={{ padding: '20px', borderTop: '1px solid var(--border-color)', background: 'white' }}>
+                    <div style={{ padding: '20px', borderTop: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)' }}>
                         <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '12px' }}>
                             <input
                                 type="text"
@@ -239,7 +258,7 @@ const Messages = () => {
                                 placeholder="Type a message..."
                                 value={newMessage}
                                 onChange={e => setNewMessage(e.target.value)}
-                                style={{ flex: 1, borderRadius: '24px', padding: '12px 20px', background: '#f1f5f9', border: 'none' }}
+                                style={{ flex: 1, borderRadius: '24px', padding: '12px 20px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
                             />
                             <button
                                 type="submit"
@@ -253,9 +272,8 @@ const Messages = () => {
                     </div>
                 </div>
             ) : (
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', flexDirection: 'column' }}>
-                    <div style={{ fontSize: '4rem', opacity: 0.2, marginBottom: '20px' }}>💬</div>
-                    <h3 style={{ color: 'var(--text-muted)' }}>Select a conversation to start messaging</h3>
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'transparent', flexDirection: 'column' }}>
+                    <EmptyState icon="💬" title="Select a conversation" message="Click on a contact in the sidebar to view your message history." />
                 </div>
             )}
         </div>

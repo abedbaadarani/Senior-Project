@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import client from '../api/client';
 import { useAuth } from '../context/AuthContext';
 import '../styles/Layout.css';
+import PasswordStrengthMeter from '../components/PasswordStrengthMeter';
 
 const RegisterStudent = () => {
   const [formData, setFormData] = useState({ name: '', fatherName: '', email: '', password: '', major: '' });
@@ -87,6 +88,7 @@ const RegisterStudent = () => {
             <div className="auth-form-group">
               <label htmlFor="password" className="auth-label">Password *</label>
               <input id="password" type="password" className="auth-input" value={formData.password} onChange={handleChange} required />
+              <PasswordStrengthMeter password={formData.password} />
             </div>
 
             <button type="submit" className="auth-btn">Register Student</button>
