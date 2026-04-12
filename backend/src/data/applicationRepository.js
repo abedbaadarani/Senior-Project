@@ -64,7 +64,7 @@ class ApplicationRepository {
     async getApplicationById(id) {
         const { data, error } = await supabase
             .from('applications')
-            .select('*, opportunities(created_by_user_id)')
+            .select('*, opportunities(id, title, company, type, mode, location, description, requirements, deadline, created_by_user_id, created_at)')
             .eq('id', id)
             .maybeSingle();
 
@@ -87,7 +87,11 @@ class ApplicationRepository {
                 type: row.opportunities.type,
                 location: row.opportunities.location,
                 mode: row.opportunities.mode,
-                createdByUserId: row.opportunities.created_by_user_id
+                description: row.opportunities.description,
+                requirements: row.opportunities.requirements,
+                deadline: row.opportunities.deadline,
+                createdByUserId: row.opportunities.created_by_user_id,
+                createdAt: row.opportunities.created_at
             } : null,
             user: row.users ? {
                 id: row.users.id,

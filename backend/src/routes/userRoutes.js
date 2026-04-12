@@ -1,5 +1,6 @@
 import express from 'express';
 import userRepository from '../data/userRepository.js';
+import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -12,7 +13,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.get('/candidates', async (req, res) => {
+router.get('/candidates', requireAuth, async (req, res) => {
   try {
     const candidates = await userRepository.getValidCandidates();
     res.status(200).json(candidates);

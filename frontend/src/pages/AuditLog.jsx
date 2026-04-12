@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import client from '../api/client';
+import { useToast } from '../context/ToastContext';
+import { timeAgo, formatDateTime } from '../utils/dateUtils';
 import '../styles/Layout.css';
 
 const ACTION_ICONS = {
@@ -20,23 +22,33 @@ const getActionIcon = (action = '') => {
 
 const getActionColor = (action = '') => {
   const upper = action.toUpperCase();
-  if (upper.includes('DELETE') || upper.includes('REJECT')) return '#dc2626';
-  if (upper.includes('APPROVE') || upper.includes('CREATE') || upper.includes('REGISTER')) return '#059669';
-  if (upper.includes('LOGIN')) return '#7c3aed';
-  if (upper.includes('UPDATE') || upper.includes('CHANGE')) return '#d97706';
+  if (upper.includes('DELETE') || upper.includes('REJECT')) return '#f87171';
+  if (upper.includes('APPROVE') || upper.includes('CREATE') || upper.includes('REGISTER')) return '#34d399';
+  if (upper.includes('LOGIN')) return '#a78bfa';
+  if (upper.includes('UPDATE') || upper.includes('CHANGE')) return '#fbbf24';
   return 'var(--primary-color)';
 };
 
 const LIMIT = 15;
 
+const categories = [
+  { label: 'All',      value: '' },
+  { label: '➕ Create',  value: 'CREATE'  },
+  { label: '✅ Approve', value: 'APPROVE' },
+  { label: '🗑️ Delete',  value: 'DELETE'  },
+  { label: '🔑 Login',   value: 'LOGIN'   },
+  { label: '✏️ Update',  value: 'UPDATE'  },
+];
+
 const AuditLog = () => {
-  const [logs, setLogs] = useState([]);
-  const [page, setPage] = useState(1);
+  const { showToast } = useToast();
+  const [logs, setLogs]       = useState([]);
+  const [page, setPage]       = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [filter, setFilter] = useState('');
-  const [search, setSearch] = useState('');
+  const [error, setError]     = useState(null);
+  const [filter, setFilter]   = useState('');
+  const [search, setSearch]   = useState('');
 
   const fetchLogs = useCallback(async (pageNum, reset = false) => {
     setLoading(true);
@@ -53,23 +65,11 @@ const AuditLog = () => {
     }
   }, []);
 
-  useEffect(() => {
-    fetchLogs(1, true);
-    setPage(1);
-  }, [fetchLogs]);
+  useEffect(() => { fetchLogs(1, true); setPage(1); }, [fetchLogs]);
 
-  const loadMore = () => {
-    const next = page + 1;
-    setPage(next);
-    fetchLogs(next, false);
-  };
+  const loadMore = () => { const next = page + 1; setPage(next); fetchLogs(next, false); };
+  const refresh  = () => { setPage(1); fetchLogs(1, true); showToast('Audit log refreshed.', 'info'); };
 
-  const refresh = () => {
-    setPage(1);
-    fetchLogs(1, true);
-  };
-
-  // Client-side filter + search on already-loaded logs
   const visible = logs.filter(log => {
     const matchFilter = !filter || log.action?.toUpperCase().includes(filter.toUpperCase());
     const matchSearch = !search || [
@@ -78,15 +78,30 @@ const AuditLog = () => {
     return matchFilter && matchSearch;
   });
 
-  // Unique action categories for filter chips
-  const categories = [
-    { label: 'All', value: '' },
-    { label: '➕ Create', value: 'CREATE' },
-    { label: '✅ Approve', value: 'APPROVE' },
-    { label: '🗑️ Delete', value: 'DELETE' },
-    { label: '🔑 Login', value: 'LOGIN' },
-    { label: '✏️ Update', value: 'UPDATE' },
-  ];
+  const exportCSV = () => {
+    if (!visible.length) { showToast('No logs to export.', 'warning'); return; }
+    const headers = ['Time', 'Action', 'Actor Role', 'Actor ID', 'Target', 'Target ID', 'Email', 'Title'];
+    const rows = visible.map(log => [
+      formatDateTime(log.timestamp),
+      log.action,
+      log.actorRole,
+      log.actorUserId,
+      log.targetType,
+      log.targetId,
+      log.metadata?.email || '',
+      log.metadata?.title || '',
+    ].map(v => `"${String(v || '').replace(/"/g, '""')}"`).join(','));
+
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `audit-log-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(`Exported ${visible.length} log entries.`, 'success');
+  };
 
   return (
     <div>
@@ -95,25 +110,44 @@ const AuditLog = () => {
         <div>
           <h1 className="page-title" style={{ marginBottom: '4px' }}>Audit Log</h1>
           <p style={{ color: 'var(--text-muted)', margin: 0 }}>
-            A complete, immutable record of every action taken on LIU Connect.
+            A complete, immutable record of every admin action on LIU Connect.
           </p>
         </div>
-        <button
-          onClick={refresh}
-          style={{
-            display: 'flex', alignItems: 'center', gap: '6px',
-            padding: '9px 18px', borderRadius: '8px', border: '1px solid var(--border-color)',
-            background: 'var(--bg-color)', cursor: 'pointer', fontWeight: '600', fontSize: '0.9rem',
-            color: 'var(--text-color)', transition: 'background 0.2s',
-          }}
-          onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-color)'}
-        >
-          🔄 Refresh
-        </button>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <button
+            onClick={exportCSV}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              padding: '9px 18px', borderRadius: '8px',
+              border: '1px solid rgba(16,185,129,0.35)',
+              background: 'rgba(16,185,129,0.08)', cursor: 'pointer',
+              fontWeight: '600', fontSize: '0.88rem', color: '#34d399',
+              transition: 'all 0.2s', fontFamily: 'inherit',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(16,185,129,0.16)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(16,185,129,0.08)'}
+          >
+            ⬇ Export CSV
+          </button>
+          <button
+            onClick={refresh}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              padding: '9px 18px', borderRadius: '8px',
+              border: '1px solid var(--border-color)',
+              background: 'var(--bg-color)', cursor: 'pointer',
+              fontWeight: '600', fontSize: '0.88rem', color: 'var(--text-color)',
+              transition: 'background 0.2s', fontFamily: 'inherit',
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'var(--bg-color)'}
+          >
+            🔄 Refresh
+          </button>
+        </div>
       </div>
 
-      {/* Search + Filter */}
+      {/* Search + Filter chips */}
       <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '20px', alignItems: 'center' }}>
         <input
           type="text"
@@ -133,7 +167,8 @@ const AuditLog = () => {
                 borderColor: filter === cat.value ? 'var(--primary-color)' : 'var(--border-color)',
                 background: filter === cat.value ? 'var(--primary-color)' : 'transparent',
                 color: filter === cat.value ? '#fff' : 'var(--text-muted)',
-                fontWeight: '600', fontSize: '0.8rem', cursor: 'pointer', transition: 'all 0.2s',
+                fontWeight: '600', fontSize: '0.8rem', cursor: 'pointer',
+                transition: 'all 0.2s', fontFamily: 'inherit',
               }}
             >
               {cat.label}
@@ -150,15 +185,11 @@ const AuditLog = () => {
       }}>
         <span>📋 <strong style={{ color: 'var(--text-color)' }}>{logs.length}</strong> events loaded</span>
         <span>🔍 <strong style={{ color: 'var(--text-color)' }}>{visible.length}</strong> matching filter</span>
-        {!hasMore && <span style={{ color: '#059669', fontWeight: '600' }}>✅ All records loaded</span>}
+        {!hasMore && <span style={{ color: '#34d399', fontWeight: '600' }}>✅ All records loaded</span>}
       </div>
 
-      {/* Error */}
       {error && (
-        <div style={{
-          background: '#fef2f2', borderLeft: '4px solid #ef4444', color: '#991b1b',
-          padding: '12px 16px', borderRadius: '6px', marginBottom: '20px'
-        }}>
+        <div style={{ background: 'rgba(239,68,68,0.1)', borderLeft: '4px solid #ef4444', color: '#f87171', padding: '12px 16px', borderRadius: '6px', marginBottom: '20px' }}>
           {error}
         </div>
       )}
@@ -179,10 +210,7 @@ const AuditLog = () => {
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
               <thead>
-                <tr style={{
-                  background: 'rgba(255,255,255,0.03)', borderBottom: '2px solid var(--border-color)',
-                  textAlign: 'left'
-                }}>
+                <tr style={{ background: 'rgba(255,255,255,0.03)', borderBottom: '2px solid var(--border-color)', textAlign: 'left' }}>
                   {['Time', 'Action', 'Actor', 'Target / Details'].map(col => (
                     <th key={col} style={{ padding: '12px 16px', fontWeight: '700', color: 'var(--text-muted)', fontSize: '0.78rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                       {col}
@@ -194,27 +222,24 @@ const AuditLog = () => {
                 {visible.map((log, i) => (
                   <tr
                     key={log.id || i}
-                    style={{
-                      borderBottom: '1px solid var(--border-color)',
-                      transition: 'background 0.15s',
-                    }}
+                    style={{ borderBottom: '1px solid var(--border-color)', transition: 'background 0.15s' }}
                     onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.02)'}
                     onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                   >
                     {/* Time */}
                     <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
-                      <div style={{ fontWeight: '600', color: 'var(--text-color)' }}>
-                        {new Date(log.timestamp).toLocaleDateString()}
+                      <div style={{ fontWeight: '600', color: 'var(--text-color)', fontSize: '0.85rem' }}>
+                        {timeAgo(log.timestamp)}
                       </div>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                        {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                        {formatDateTime(log.timestamp)}
                       </div>
                     </td>
 
                     {/* Action */}
                     <td style={{ padding: '14px 16px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '1.1rem' }}>{getActionIcon(log.action)}</span>
+                        <span style={{ fontSize: '1.05rem' }}>{getActionIcon(log.action)}</span>
                         <span style={{ fontWeight: '700', color: getActionColor(log.action) }}>
                           {log.action}
                         </span>
@@ -225,14 +250,12 @@ const AuditLog = () => {
                     <td style={{ padding: '14px 16px' }}>
                       <span style={{
                         display: 'inline-block', padding: '2px 9px', borderRadius: '99px',
-                        background: 'rgba(0,0,0,0.1)', color: 'var(--text-muted)',
-                        fontSize: '0.75rem', fontWeight: '700', marginBottom: '4px'
+                        background: 'rgba(255,255,255,0.06)', color: 'var(--text-muted)',
+                        fontSize: '0.75rem', fontWeight: '700', marginBottom: '4px',
                       }}>
                         {log.actorRole?.replace('_', ' ')}
                       </span>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                        ID: {log.actorUserId}
-                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>ID: {log.actorUserId}</div>
                     </td>
 
                     {/* Target / Details */}
@@ -241,14 +264,10 @@ const AuditLog = () => {
                         {log.targetType} {log.targetId ? `#${log.targetId}` : ''}
                       </span>
                       {log.metadata?.email && (
-                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                          📧 {log.metadata.email}
-                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>📧 {log.metadata.email}</div>
                       )}
                       {log.metadata?.title && (
-                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                          📌 {log.metadata.title}
-                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>📌 {log.metadata.title}</div>
                       )}
                     </td>
                   </tr>
@@ -258,14 +277,9 @@ const AuditLog = () => {
           </div>
         )}
 
-        {/* Load More */}
         {hasMore && !loading && (
           <div style={{ padding: '20px', textAlign: 'center', borderTop: '1px solid var(--border-color)' }}>
-            <button
-              onClick={loadMore}
-              className="btn-primary"
-              style={{ padding: '10px 32px' }}
-            >
+            <button onClick={loadMore} className="btn-primary" style={{ padding: '10px 32px' }}>
               Load More Events
             </button>
           </div>

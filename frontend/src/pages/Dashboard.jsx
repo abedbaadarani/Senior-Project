@@ -5,6 +5,7 @@ import client from '../api/client';
 import OpportunityCard from '../components/OpportunityCard';
 import GlobalEmptyState from '../components/EmptyState';
 import { ListSkeleton } from '../components/Skeleton';
+import { timeAgo } from '../utils/dateUtils';
 import '../styles/Layout.css';
 import '../styles/Opportunities.css';
 import {
@@ -243,7 +244,7 @@ const HeadAdminDashboard = ({ user }) => {
         <div style={{ flex: '1 1 420px' }}>
           <div className="card" style={{ margin: 0 }}>
             <SectionTitle action={
-              <Link to="/head-admin" style={{ fontSize: '0.85rem', color: 'var(--primary-color)', fontWeight: '600', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Link to="/audit-log" style={{ fontSize: '0.85rem', color: 'var(--primary-color)', fontWeight: '600', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 View Full Log →
               </Link>
             }>
@@ -275,9 +276,8 @@ const HeadAdminDashboard = ({ user }) => {
                         {log.metadata?.title && ` · "${log.metadata.title}"`}
                       </div>
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', flexShrink: 0, textAlign: 'right' }}>
-                      <div>{new Date(log.timestamp).toLocaleDateString()}</div>
-                      <div>{new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', flexShrink: 0, textAlign: 'right', minWidth: '60px' }}>
+                      {timeAgo(log.timestamp)}
                     </div>
                   </div>
                 ))}
@@ -321,7 +321,7 @@ const HeadAdminDashboard = ({ user }) => {
               <Link to="/head-admin" className="btn-primary" style={{ textAlign: 'center', textDecoration: 'none', display: 'block', padding: '10px' }}>
                 ➕ Register Account
               </Link>
-              <Link to="/head-admin" style={{ textAlign: 'center', textDecoration: 'none', display: 'block', padding: '10px', borderRadius: '8px', border: '1px solid var(--border-color)', color: 'var(--text-color)', fontWeight: '600', fontSize: '0.9rem' }}>
+              <Link to="/audit-log" className="btn-primary" style={{ textAlign: 'center', textDecoration: 'none', display: 'block', padding: '10px' }}>
                 📋 Full Audit Log
               </Link>
             </div>
@@ -429,7 +429,7 @@ const HeadAdminDashboard = ({ user }) => {
                           </span>
                         </td>
                         <td style={{ padding: '16px 32px', color: '#94a3b8', fontSize: '0.85rem' }}>
-                          {new Date(u.createdAt).toLocaleDateString()}
+                          {timeAgo(u.createdAt)}
                         </td>
                       </tr>
                     ))}
@@ -656,6 +656,51 @@ const InstructorDashboard = ({ user }) => {
         <StatCard icon="🌟" label="Recommendations" value={loading ? '…' : recommendations.length} color="#7c3aed" sub="Written by you" />
       </div>
 
+      {/* ── Instructor Charts ── */}
+      {!loading && (myOpps.length > 0 || recommendations.length > 0) && (
+        <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginBottom: '36px' }}>
+
+          {/* Bar: My posts + application counts */}
+          {myOpps.length > 0 && (
+            <ChartCard title="📊 Applications per Post" style={{ flex: '2 1 360px' }}>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={myOpps.slice(0, 6).map(o => ({ name: o.title.length > 18 ? o.title.slice(0, 18) + '…' : o.title, apps: o._count?.applications || 0 }))} barSize={28}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                  <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <YAxis allowDecimals={false} tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} width={24} />
+                  <Tooltip {...chartTooltipStyle} />
+                  <Bar dataKey="apps" name="Applications" radius={[6,6,0,0]}>
+                    {myOpps.slice(0,6).map((_,i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartCard>
+          )}
+
+          {/* Pie: Post types */}
+          {myOpps.length > 0 && (
+            <ChartCard title="💼 My Posts by Type" style={{ flex: '1 1 240px' }}>
+              {(() => {
+                const types = myOpps.reduce((acc, o) => { acc[o.type] = (acc[o.type]||0)+1; return acc; }, {});
+                const pieData = Object.entries(types).map(([name, value]) => ({ name, value }));
+                return (
+                  <ResponsiveContainer width="100%" height={200}>
+                    <PieChart>
+                      <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} paddingAngle={4}
+                        label={({ name, percent }) => `${name} ${(percent*100).toFixed(0)}%`} labelLine={false} style={{ fontSize: '10px', fill: '#94a3b8' }}>
+                        {pieData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                      </Pie>
+                      <Tooltip {...chartTooltipStyle} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                );
+              })()}
+            </ChartCard>
+          )}
+
+        </div>
+      )}
+
       <div style={{ display: 'flex', gap: '28px', flexWrap: 'wrap' }}>
         {/* My Opportunity Posts */}
         <div style={{ flex: '1 1 380px' }}>
@@ -767,6 +812,45 @@ const AlumniDashboard = ({ user }) => {
         <StatCard icon="📥" label="Applications Received" value={loading ? '…' : totalApps} color="#059669" />
         <StatCard icon="🔖" label="Saved Listings" value={loading ? '…' : bookmarks.length} color="#7c3aed" />
       </div>
+
+      {/* ── Alumni Charts ── */}
+      {!loading && myOpps.length > 0 && (
+        <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginBottom: '36px' }}>
+
+          <ChartCard title="📊 Applications Received per Post" style={{ flex: '2 1 360px' }}>
+            <ResponsiveContainer width="100%" height={200}>
+              <BarChart data={myOpps.slice(0,6).map(o => ({ name: o.title.length > 16 ? o.title.slice(0,16)+'…' : o.title, apps: o._count?.applications || 0 }))} barSize={28}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis allowDecimals={false} tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} width={24} />
+                <Tooltip {...chartTooltipStyle} />
+                <Bar dataKey="apps" name="Applications" radius={[6,6,0,0]}>
+                  {myOpps.slice(0,6).map((_,i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+
+          <ChartCard title="🏷️ Posts by Type & Mode" style={{ flex: '1 1 240px' }}>
+            {(() => {
+              const modes = myOpps.reduce((acc, o) => { acc[o.mode] = (acc[o.mode]||0)+1; return acc; }, {});
+              const pieData = Object.entries(modes).map(([name, value]) => ({ name, value }));
+              return (
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={4}>
+                      {pieData.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                    </Pie>
+                    <Tooltip {...chartTooltipStyle} />
+                    <Legend wrapperStyle={{ fontSize: '0.78rem', color: '#94a3b8' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              );
+            })()}
+          </ChartCard>
+
+        </div>
+      )}
 
       <div style={{ display: 'flex', gap: '28px', flexWrap: 'wrap' }}>
         {/* My Posts */}
@@ -929,6 +1013,54 @@ const StudentDashboard = ({ user }) => {
         <StatCard icon="🌟" label="Recommendations" value={loading ? '…' : recommendations.length} color="#059669" sub="From instructors" />
         <StatCard icon="👤" label="Profile" value={`${completion}%`} color={completion === 100 ? '#059669' : '#d97706'} sub="Completion" />
       </div>
+
+      {/* ── Student Charts ── */}
+      {!loading && applications.length > 0 && (
+        <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginBottom: '36px' }}>
+
+          {/* Pie: Application status breakdown */}
+          <ChartCard title="📋 My Application Pipeline" style={{ flex: '1 1 260px' }}>
+            {(() => {
+              const statusCounts = applications.reduce((acc, a) => { acc[a.status] = (acc[a.status]||0)+1; return acc; }, {});
+              const STATUS_COLORS = { PENDING: '#f59e0b', REVIEWED: '#3b82f6', INTERVIEWING: '#7c3aed', ACCEPTED: '#10b981', REJECTED: '#ef4444' };
+              const pieData = Object.entries(statusCounts).map(([name, value]) => ({ name, value, color: STATUS_COLORS[name] || '#64748b' }));
+              return (
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={4}>
+                      {pieData.map((d, i) => <Cell key={i} fill={d.color} />)}
+                    </Pie>
+                    <Tooltip {...chartTooltipStyle} />
+                    <Legend wrapperStyle={{ fontSize: '0.78rem', color: '#94a3b8', paddingTop: '8px' }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              );
+            })()}
+          </ChartCard>
+
+          {/* Bar: Applications vs Bookmarks */}
+          <ChartCard title="📈 My Activity Overview" style={{ flex: '2 1 340px' }}>
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={[
+                { label: 'Applied',   count: applications.length },
+                { label: 'Bookmarks', count: bookmarks.length  },
+                { label: 'Recommendations', count: recommendations.length },
+              ]} barSize={44}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <XAxis dataKey="label" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} />
+                <YAxis allowDecimals={false} tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} width={24} />
+                <Tooltip {...chartTooltipStyle} />
+                <Bar dataKey="count" name="Count" radius={[8,8,0,0]}>
+                  <Cell fill="#f97316" />
+                  <Cell fill="#6366f1" />
+                  <Cell fill="#10b981" />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+
+        </div>
+      )}
 
       <div style={{ display: 'flex', gap: '28px', flexWrap: 'wrap' }}>
         {/* Left: Opportunities + Application Tracker */}

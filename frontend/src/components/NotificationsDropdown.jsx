@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import client from '../api/client';
+import { timeAgo } from '../utils/dateUtils';
 
 const NotificationsDropdown = () => {
     const [notifications, setNotifications] = useState([]);
@@ -126,7 +127,7 @@ const NotificationsDropdown = () => {
                                     </div>
                                     <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>{notif.message}</p>
                                     <small style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.75rem', marginTop: '8px', display: 'block' }}>
-                                        {new Date(notif.createdAt).toLocaleDateString()} at {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        {timeAgo(notif.createdAt)}
                                     </small>
                                 </div>
                             ))

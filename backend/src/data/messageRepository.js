@@ -49,7 +49,7 @@ class MessageRepository {
         const { data, error } = await supabase
             .from('messages')
             .insert({ sender_id: senderId, receiver_id: receiverId, content })
-            .select('*, sender:users!sender_id(id, name, email, role)')
+            .select('*, sender:users!sender_id(id, name, email, role), receiver:users!receiver_id(id, name, email, role)')
             .single();
 
         if (error) throw error;

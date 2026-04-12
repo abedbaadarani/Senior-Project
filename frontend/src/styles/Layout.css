@@ -879,3 +879,142 @@ hr {
   .content { padding: 20px 16px; }
   .page-title { font-size: 1.4rem; }
 }
+/* ─── Toast & Modal Animations ───────────────────────────────────── */
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(40px) scale(0.94); }
+  to   { opacity: 1; transform: translateX(0)    scale(1);    }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+
+/* ─── Scroll-to-top button ───────────────────────────────────────── */
+.scroll-top-btn {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(249,115,22,0.5);
+  transition: all 0.25s var(--spring);
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.7) translateY(12px);
+}
+
+.scroll-top-btn.visible {
+  opacity: 1;
+  pointer-events: all;
+  transform: scale(1) translateY(0);
+}
+
+.scroll-top-btn:hover {
+  transform: scale(1.08) translateY(-2px);
+  box-shadow: 0 8px 28px rgba(249,115,22,0.65);
+}
+
+/* ─── Drag-and-drop zone ─────────────────────────────────────────── */
+.dropzone {
+  border: 2px dashed rgba(255,255,255,0.18);
+  border-radius: 12px;
+  padding: 28px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s var(--ease);
+  background: rgba(255,255,255,0.02);
+}
+.dropzone:hover, .dropzone.drag-over {
+  border-color: var(--accent);
+  background: rgba(249,115,22,0.06);
+}
+.dropzone .drop-icon { font-size: 2.2rem; margin-bottom: 10px; }
+.dropzone .drop-text { color: var(--text-muted); font-size: 0.88rem; }
+.dropzone .drop-text strong { color: var(--accent); }
+
+/* ─── Pipeline / Kanban status badges ───────────────────────────── */
+.pipeline-track {
+  display: flex;
+  gap: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.08);
+  margin-bottom: 20px;
+}
+.pipeline-stage {
+  flex: 1;
+  padding: 10px 6px;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  transition: all 0.2s;
+}
+.pipeline-stage:last-child { border-right: none; }
+.pipeline-stage.active { color: #fff; }
+
+/* ─── Character counter ──────────────────────────────────────────── */
+.char-counter {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: right;
+  margin-top: 4px;
+}
+.char-counter.near-limit { color: #f59e0b; }
+.char-counter.at-limit   { color: #ef4444; }
+
+/* ─── Profile completion checklist ──────────────────────────────── */
+.completion-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+.completion-item:last-child { border-bottom: none; }
+.completion-check {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+}
+.completion-check.done   { background: rgba(16,185,129,0.15); color: #10b981; }
+.completion-check.undone { background: rgba(255,255,255,0.06); color: var(--text-muted); }
+
+/* ─── Breadcrumb ─────────────────────────────────────────────────── */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.breadcrumb a {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.breadcrumb a:hover { color: var(--accent); }
+.breadcrumb .bc-sep { opacity: 0.4; }
+.breadcrumb .bc-current { color: var(--accent); font-weight: 600; }

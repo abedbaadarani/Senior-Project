@@ -1,4 +1,6 @@
 export const errorHandler = (err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ error: 'Internal Server Error' });
+  const status = err.status || err.statusCode || 500;
+  const message = status < 500 ? err.message : 'Internal Server Error';
+  res.status(status).json({ error: message });
 };

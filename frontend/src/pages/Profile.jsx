@@ -1,169 +1,261 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import '../styles/Layout.css';
 
+const STEPS = [
+  { key: 'account',  label: 'Account created',           icon: '🎉', check: () => true           },
+  { key: 'major',    label: 'Major / Program added',      icon: '🎓', check: (u, f) => !!(f.major || u?.major) },
+  { key: 'cv',       label: 'Resume / CV uploaded',       icon: '📄', check: (u, f) => !!(f.cvFile || u?.cvUrl) },
+  { key: 'linkedin', label: 'LinkedIn profile linked',    icon: '💼', check: (u, f) => !!(f.linkedinUrl || u?.linkedinUrl) },
+  { key: 'github',   label: 'GitHub / Portfolio linked',  icon: '🔗', check: (u, f) => !!(f.githubUrl  || u?.githubUrl)  },
+];
+
 const Profile = () => {
-    const { user, updateUser } = useAuth();
-    const [formData, setFormData] = useState({
-        major: user?.major || '',
-        cvFile: null,
-        linkedinUrl: user?.linkedinUrl || '',
-        githubUrl: user?.githubUrl || '',
-    });
-    const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState({ text: '', type: '' });
+  const { user, updateUser } = useAuth();
+  const { showToast } = useToast();
+  const fileInputRef = useRef(null);
+  const [dragging, setDragging] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-    const handleChange = (e) => {
-        if (e.target.id === 'cvFile') {
-            setFormData({ ...formData, cvFile: e.target.files[0] });
-        } else {
-            setFormData({ ...formData, [e.target.id]: e.target.value });
-        }
-    };
+  const [formData, setFormData] = useState({
+    major:       user?.major       || '',
+    cvFile:      null,
+    linkedinUrl: user?.linkedinUrl || '',
+    githubUrl:   user?.githubUrl   || '',
+  });
+  const [cvFileName, setCvFileName] = useState('');
+  const [errors, setErrors] = useState({});
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
-        setMessage({ text: '', type: '' });
+  const handleChange = (e) => {
+    setFormData(prev => ({ ...prev, [e.target.id]: e.target.value }));
+    if (errors[e.target.id]) setErrors(prev => ({ ...prev, [e.target.id]: '' }));
+  };
 
-        try {
-            let dataToSend = formData;
+  const handleFile = (file) => {
+    if (!file) return;
+    const allowed = ['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!allowed.includes(file.type)) {
+      showToast('Only PDF or Word files are accepted.', 'error');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('File size must be under 5 MB.', 'error');
+      return;
+    }
+    setFormData(prev => ({ ...prev, cvFile: file }));
+    setCvFileName(file.name);
+  };
 
-            // If they selected a file, we must use FormData
-            if (formData.cvFile) {
-                dataToSend = new FormData();
-                dataToSend.append('major', formData.major);
-                dataToSend.append('linkedinUrl', formData.linkedinUrl);
-                dataToSend.append('githubUrl', formData.githubUrl);
-                dataToSend.append('cvFile', formData.cvFile);
-            }
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragging(false);
+    handleFile(e.dataTransfer.files[0]);
+  };
 
-            await updateUser(dataToSend);
-            setMessage({ text: 'Profile updated successfully!', type: 'success' });
-        } catch (err) {
-            setMessage({ text: err.message || 'Failed to update profile', type: 'error' });
-        } finally {
-            setLoading(false);
-        }
-    };
+  const validate = () => {
+    const e = {};
+    if (formData.linkedinUrl && !formData.linkedinUrl.startsWith('http')) {
+      e.linkedinUrl = 'Must be a valid URL starting with http(s)://';
+    }
+    if (formData.githubUrl && !formData.githubUrl.startsWith('http')) {
+      e.githubUrl = 'Must be a valid URL starting with http(s)://';
+    }
+    return e;
+  };
 
-    const calculateCompletion = () => {
-        let score = 25; // Base score for having an account
-        if (formData.major) score += 25;
-        if (formData.cvFile || user?.cvUrl) score += 25;
-        if (formData.linkedinUrl) score += 25;
-        return score;
-    };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const errs = validate();
+    if (Object.keys(errs).length) { setErrors(errs); return; }
 
-    const completion = calculateCompletion();
+    setLoading(true);
+    try {
+      let dataToSend = formData;
+      if (formData.cvFile) {
+        dataToSend = new FormData();
+        dataToSend.append('major',       formData.major);
+        dataToSend.append('linkedinUrl', formData.linkedinUrl);
+        dataToSend.append('githubUrl',   formData.githubUrl);
+        dataToSend.append('cvFile',      formData.cvFile);
+      }
+      await updateUser(dataToSend);
+      showToast('Profile updated successfully!', 'success');
+      setCvFileName('');
+      setFormData(prev => ({ ...prev, cvFile: null }));
+    } catch (err) {
+      showToast(err.message || 'Failed to update profile', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <div>
-            <h1 className="page-title">My Profile</h1>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '32px' }}>
-                Complete your profile to stand out to alumni and instructors.
-            </p>
+  const doneCount = STEPS.filter(s => s.check(user, formData)).length;
+  const completion = Math.round((doneCount / STEPS.length) * 100);
+  const barColor = completion === 100 ? '#10b981' : completion >= 60 ? '#f97316' : '#6366f1';
 
-            <div style={{ display: 'flex', gap: '32px', flexWrap: 'wrap' }}>
-                <div style={{ flex: '1 1 300px', maxWidth: '400px' }}>
-                    <div className="card" style={{ margin: 0 }}>
-                        <h3 style={{ marginTop: 0, color: 'var(--primary-color)' }}>Profile Completion</h3>
-                        <div style={{ backgroundColor: 'var(--bg-color)', borderRadius: '8px', height: '12px', overflow: 'hidden', marginTop: '16px', border: '1px solid var(--border-color)' }}>
-                            <div style={{ backgroundColor: completion === 100 ? '#10b981' : 'var(--primary-color)', height: '100%', width: `${completion}%`, transition: 'width 0.3s ease' }}></div>
-                        </div>
-                        <p style={{ textAlign: 'right', margin: '8px 0 0 0', fontWeight: 'bold', color: completion === 100 ? '#10b981' : 'var(--text-color)' }}>
-                            {completion}%
-                        </p>
-                        {completion < 100 && (
-                            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '16px' }}>
-                                Add your CV and social links to reach 100% completion!
-                            </p>
-                        )}
-                        {completion === 100 && (
-                            <p style={{ color: '#10b981', fontSize: '0.9rem', marginTop: '16px', fontWeight: '500' }}>
-                                Awesome! Your profile is fully complete.
-                            </p>
-                        )}
-                    </div>
-                </div>
+  return (
+    <div>
+      <h1 className="page-title">My Profile</h1>
+      <p style={{ color: 'var(--text-muted)', marginBottom: '32px' }}>
+        Complete your profile to stand out to alumni, instructors, and employers.
+      </p>
 
-                <div style={{ flex: '1 1 400px' }}>
-                    <div className="card" style={{ margin: 0 }}>
-                        {message.text && (
-                            <div style={{
-                                backgroundColor: message.type === 'success' ? '#ecfdf5' : '#fef2f2',
-                                color: message.type === 'success' ? '#065f46' : '#991b1b',
-                                padding: '12px',
-                                borderRadius: '4px',
-                                borderLeft: `4px solid ${message.type === 'success' ? '#10b981' : '#ef4444'}`,
-                                marginBottom: '24px'
-                            }}>
-                                {message.text}
-                            </div>
-                        )}
+      <div style={{ display: 'flex', gap: '32px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
 
-                        <form onSubmit={handleSubmit}>
-                            <div className="form-group">
-                                <label htmlFor="major">Major / Program of Study</label>
-                                <input
-                                    id="major"
-                                    type="text"
-                                    className="form-control"
-                                    value={formData.major}
-                                    onChange={handleChange}
-                                    placeholder="e.g. Computer Science"
-                                />
-                            </div>
+        {/* ── Left: Completion card ── */}
+        <div style={{ flex: '1 1 280px', maxWidth: '340px' }}>
+          <div className="card" style={{ margin: 0 }}>
+            <h3 style={{ marginTop: 0, color: 'var(--primary-color)', marginBottom: '20px' }}>
+              Profile Completion
+            </h3>
 
-                            <div className="form-group">
-                                <label htmlFor="cvFile">Resume/CV (PDF, Word, etc.)</label>
-                                {user?.cvUrl && (
-                                    <p style={{ fontSize: '0.9rem', marginBottom: '8px', color: 'var(--text-color)' }}>
-                                        Current CV: <a href={user.cvUrl} target="_blank" rel="noreferrer" style={{ color: 'var(--primary-color)', fontWeight: 'bold' }}>View File</a>
-                                    </p>
-                                )}
-                                <input
-                                    id="cvFile"
-                                    type="file"
-                                    className="form-control"
-                                    onChange={handleChange}
-                                    accept=".pdf,.doc,.docx"
-                                />
-                            </div>
-
-                            <div className="form-group">
-                                <label htmlFor="linkedinUrl">LinkedIn Profile Link</label>
-                                <input
-                                    id="linkedinUrl"
-                                    type="url"
-                                    className="form-control"
-                                    value={formData.linkedinUrl}
-                                    onChange={handleChange}
-                                    placeholder="https://linkedin.com/in/..."
-                                />
-                            </div>
-
-                            <div className="form-group" style={{ marginBottom: '24px' }}>
-                                <label htmlFor="githubUrl">GitHub / Portfolio Link (Optional)</label>
-                                <input
-                                    id="githubUrl"
-                                    type="url"
-                                    className="form-control"
-                                    value={formData.githubUrl}
-                                    onChange={handleChange}
-                                    placeholder="https://github.com/..."
-                                />
-                            </div>
-
-                            <button type="submit" className="btn-primary" disabled={loading}>
-                                {loading ? 'Saving Changes...' : 'Save Profile'}
-                            </button>
-                        </form>
-                    </div>
-                </div>
+            {/* Progress ring replacement — wide bar */}
+            <div style={{ marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  {doneCount} of {STEPS.length} steps completed
+                </span>
+                <span style={{ fontSize: '1.2rem', fontWeight: '800', color: barColor }}>
+                  {completion}%
+                </span>
+              </div>
+              <div style={{ background: 'rgba(255,255,255,0.08)', borderRadius: '99px', height: '10px', overflow: 'hidden' }}>
+                <div style={{
+                  width: `${completion}%`, height: '100%', borderRadius: '99px',
+                  background: `linear-gradient(90deg, ${barColor}, ${barColor}cc)`,
+                  transition: 'width 0.6s ease',
+                }} />
+              </div>
             </div>
+
+            {/* Checklist */}
+            <div>
+              {STEPS.map(step => {
+                const done = step.check(user, formData);
+                return (
+                  <div key={step.key} className="completion-item">
+                    <div className={`completion-check ${done ? 'done' : 'undone'}`}>
+                      {done ? '✓' : '○'}
+                    </div>
+                    <span style={{ fontSize: '0.85rem', color: done ? 'var(--text-color)' : 'var(--text-muted)', textDecoration: done ? 'none' : 'none' }}>
+                      {step.icon} {step.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {completion === 100 && (
+              <div style={{
+                marginTop: '20px', padding: '12px 16px', borderRadius: '10px',
+                background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.25)',
+                color: '#34d399', fontSize: '0.85rem', fontWeight: '600', textAlign: 'center',
+              }}>
+                🎉 Your profile is 100% complete!
+              </div>
+            )}
+          </div>
         </div>
-    );
+
+        {/* ── Right: Form ── */}
+        <div style={{ flex: '1 1 380px' }}>
+          <div className="card" style={{ margin: 0 }}>
+            <form onSubmit={handleSubmit} noValidate>
+
+              {/* Major */}
+              <div className="form-group">
+                <label htmlFor="major">Major / Program of Study</label>
+                <input
+                  id="major" type="text" className="form-control"
+                  value={formData.major} onChange={handleChange}
+                  placeholder="e.g. Computer Science"
+                />
+              </div>
+
+              {/* CV Drag-and-drop */}
+              <div className="form-group">
+                <label>Resume / CV</label>
+                {user?.cvUrl && !cvFileName && (
+                  <p style={{ fontSize: '0.85rem', marginBottom: '8px', color: 'var(--text-muted)' }}>
+                    Current file:{' '}
+                    <a href={user.cvUrl} target="_blank" rel="noreferrer"
+                      style={{ color: 'var(--primary-color)', fontWeight: '600' }}>
+                      View CV ↗
+                    </a>
+                  </p>
+                )}
+
+                <div
+                  className={`dropzone ${dragging ? 'drag-over' : ''}`}
+                  onDragOver={e => { e.preventDefault(); setDragging(true); }}
+                  onDragLeave={() => setDragging(false)}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <div className="drop-icon">{cvFileName ? '📄' : '☁️'}</div>
+                  {cvFileName ? (
+                    <p className="drop-text">
+                      <strong>{cvFileName}</strong>
+                      <br />
+                      <span style={{ fontSize: '0.78rem', opacity: 0.7 }}>Click to replace</span>
+                    </p>
+                  ) : (
+                    <p className="drop-text">
+                      <strong>Drag & drop</strong> your CV here, or <strong>click to browse</strong>
+                      <br />
+                      <span style={{ fontSize: '0.78rem', opacity: 0.7 }}>PDF or Word • Max 5 MB</span>
+                    </p>
+                  )}
+                </div>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  style={{ display: 'none' }}
+                  onChange={e => handleFile(e.target.files[0])}
+                />
+              </div>
+
+              {/* LinkedIn */}
+              <div className="form-group">
+                <label htmlFor="linkedinUrl">LinkedIn Profile URL</label>
+                <input
+                  id="linkedinUrl" type="url" className="form-control"
+                  value={formData.linkedinUrl} onChange={handleChange}
+                  placeholder="https://linkedin.com/in/yourname"
+                  style={errors.linkedinUrl ? { borderColor: 'rgba(239,68,68,0.6)' } : {}}
+                />
+                {errors.linkedinUrl && (
+                  <p style={{ color: '#f87171', fontSize: '0.78rem', marginTop: '4px' }}>{errors.linkedinUrl}</p>
+                )}
+              </div>
+
+              {/* GitHub */}
+              <div className="form-group" style={{ marginBottom: '28px' }}>
+                <label htmlFor="githubUrl">GitHub / Portfolio URL <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(optional)</span></label>
+                <input
+                  id="githubUrl" type="url" className="form-control"
+                  value={formData.githubUrl} onChange={handleChange}
+                  placeholder="https://github.com/yourname"
+                  style={errors.githubUrl ? { borderColor: 'rgba(239,68,68,0.6)' } : {}}
+                />
+                {errors.githubUrl && (
+                  <p style={{ color: '#f87171', fontSize: '0.78rem', marginTop: '4px' }}>{errors.githubUrl}</p>
+                )}
+              </div>
+
+              <button type="submit" className="btn-primary" disabled={loading}>
+                {loading ? 'Saving...' : 'Save Profile'}
+              </button>
+
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default Profile;

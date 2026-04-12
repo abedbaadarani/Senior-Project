@@ -36,7 +36,7 @@ export const sendMessage = async (req, res) => {
 
         // Also create a notification for the receiver
         await notificationRepository.createNotification({
-            userId: receiverId,
+            userId: parseInt(receiverId, 10),
             title: 'New Message',
             message: `${req.user.name} sent you a message: "${content.substring(0, 50)}${content.length > 50 ? '...' : ''}"`,
             link: `/messages/${req.user.id}`

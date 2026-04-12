@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import NotificationsDropdown from './NotificationsDropdown';
 import '../styles/Layout.css';
 
-/* ── Nav icon helper ──────────────────────────────────────────────── */
 const Icon = ({ children }) => <span className="nav-icon">{children}</span>;
 
-/* ── Role accent color map ────────────────────────────────────────── */
 const ROLE_META = {
   HEAD_ADMIN: { color: '#dc2626', label: 'Head Admin' },
   ADMIN:      { color: '#7c3aed', label: 'Admin'      },
@@ -20,17 +18,16 @@ const Layout = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const contentRef = useRef(null);
   const [pendingCount, setPendingCount] = useState(0);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   const roleMeta = ROLE_META[user?.role] || { color: '#64748b', label: user?.role || '' };
   const initials = user?.name
     ? user.name.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase()
     : '?';
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+  const handleLogout = () => { logout(); navigate('/login'); };
 
   useEffect(() => {
     if (user?.role === 'INSTRUCTOR') {
@@ -42,12 +39,23 @@ const Layout = () => {
     }
   }, [user, location.pathname]);
 
+  // Scroll-to-top listener on the content element
+  useEffect(() => {
+    const el = contentRef.current;
+    if (!el) return;
+    const onScroll = () => setShowScrollTop(el.scrollTop > 300);
+    el.addEventListener('scroll', onScroll);
+    return () => el.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const scrollToTop = () => contentRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+
   const isActive = (path) => location.pathname === path ? 'active' : '';
 
   return (
     <div className="layout-container">
 
-      {/* ── Top Navbar ──────────────────────────────────────────────── */}
+      {/* Navbar */}
       <nav className="navbar">
         <div className="navbar-brand">
           <Link to={user ? '/dashboard' : '/'}>
@@ -88,23 +96,19 @@ const Layout = () => {
         </div>
       </nav>
 
-      {/* ── Body (sidebar + content) ──────────────────────────────── */}
+      {/* Body */}
       <div className="layout-body">
 
         {user && !user.needsPasswordChange && (
           <aside className="sidebar">
-
-            {/* ─ Main navigation ─────────────────────────────────── */}
             <ul className="sidebar-menu">
 
-              {/* Always visible */}
               <li>
                 <Link to="/dashboard" className={isActive('/dashboard')}>
                   <Icon>🏠</Icon> Dashboard
                 </Link>
               </li>
 
-              {/* Student & Alumni */}
               {(user.role === 'STUDENT' || user.role === 'ALUMNI') && (
                 <li>
                   <Link to="/profile" className={isActive('/profile')}>
@@ -125,7 +129,6 @@ const Layout = () => {
                 </Link>
               </li>
 
-              {/* Alumni & Student only */}
               {(user.role === 'ALUMNI' || user.role === 'STUDENT') && (
                 <li>
                   <Link to="/alumni-directory" className={isActive('/alumni-directory')}>
@@ -134,7 +137,6 @@ const Layout = () => {
                 </li>
               )}
 
-              {/* Instructor & Alumni: post management */}
               {(user.role === 'INSTRUCTOR' || user.role === 'ALUMNI') && (
                 <li>
                   <Link to="/my-opportunities" className={isActive('/my-opportunities')}>
@@ -143,7 +145,6 @@ const Layout = () => {
                 </li>
               )}
 
-              {/* Recommendations */}
               {(user.role === 'INSTRUCTOR' || user.role === 'ADMIN' || user.role === 'HEAD_ADMIN' || user.role === 'ALUMNI') && (
                 <li>
                   <Link to="/recommendations" className={isActive('/recommendations')}>
@@ -153,7 +154,6 @@ const Layout = () => {
                 </li>
               )}
 
-              {/* Instructor: alumni approvals */}
               {user.role === 'INSTRUCTOR' && (
                 <li>
                   <Link to="/alumni-approval" className={isActive('/alumni-approval')}>
@@ -166,7 +166,6 @@ const Layout = () => {
                 </li>
               )}
 
-              {/* Admin */}
               {user.role === 'ADMIN' && (
                 <li>
                   <Link to="/admin" className={isActive('/admin')}>
@@ -175,7 +174,6 @@ const Layout = () => {
                 </li>
               )}
 
-              {/* Head Admin */}
               {user.role === 'HEAD_ADMIN' && (
                 <>
                   <li>
@@ -193,7 +191,6 @@ const Layout = () => {
 
             </ul>
 
-            {/* ─ Sidebar footer ──────────────────────────────────── */}
             <div className="sidebar-footer">
               <div
                 className="sidebar-footer-avatar"
@@ -206,15 +203,21 @@ const Layout = () => {
                 <div className="sidebar-footer-role">{roleMeta.label}</div>
               </div>
             </div>
-
           </aside>
         )}
 
-        <main className="content">
-          {/* Decorative animated background orbs */}
+        <main className="content" ref={contentRef}>
           <div className="content-orb-2" aria-hidden="true" />
           <div className="content-orb-3" aria-hidden="true" />
           <Outlet />
+          <button
+            className={`scroll-top-btn${showScrollTop ? ' visible' : ''}`}
+            onClick={scrollToTop}
+            aria-label="Scroll to top"
+            title="Back to top"
+          >
+            ↑
+          </button>
         </main>
       </div>
     </div>
