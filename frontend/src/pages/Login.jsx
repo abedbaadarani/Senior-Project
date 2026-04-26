@@ -83,11 +83,9 @@ const Login = () => {
             >
               {isSubmitting ? 'Signing in...' : 'Sign In'}
             </button>
-            <div style={{ textAlign: 'center', marginTop: '16px' }}>
-              <Link to="/forgot-password" style={{ color: 'var(--primary-color)', fontSize: '0.9rem', textDecoration: 'none', fontWeight: '500' }}>
-                Forgot your password?
-              </Link>
-            </div>
+            <p style={{ textAlign: 'center', marginTop: '16px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+              Forgot your password? Contact your administrator.
+            </p>
           </form>
 
           <div className="auth-footer">

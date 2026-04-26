@@ -9,6 +9,7 @@ import alumniRoutes from './alumniRoutes.js';
 import applicationRoutes from './applicationRoutes.js';
 import notificationRoutes from './notificationRoutes.js';
 import messageRoutes from './messageRoutes.js';
+import dashboardRoutes from './dashboardRoutes.js';
 
 const router = express.Router();
 
@@ -22,5 +23,6 @@ router.use('/alumni', alumniRoutes);
 router.use('/applications', applicationRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/messages', messageRoutes);
+router.use('/dashboard', dashboardRoutes);
 
 export default router;

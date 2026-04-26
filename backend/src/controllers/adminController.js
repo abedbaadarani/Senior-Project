@@ -32,6 +32,34 @@ export const createAdmin = async (req, res) => {
   }
 };
 
+export const resetUserPassword = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await userRepository.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Generate 8-char alphanumeric temporary password
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+    let tempPassword = '';
+    for (let i = 0; i < 8; i++) {
+      tempPassword += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    const passwordHash = await bcrypt.hash(tempPassword, 10);
+    await userRepository.resetPassword(userId, passwordHash);
+
+    auditLogService.logAction(req.user, 'reset-password', 'USER', userId, { email: user.email });
+
+    res.json({ message: 'Password reset successfully', temporaryPassword: tempPassword, userName: user.name, userEmail: user.email });
+  } catch (err) {
+    console.error('Reset password error:', err);
+    res.status(500).json({ error: 'Failed to reset password' });
+  }
+};
+
 export const createInstructor = async (req, res) => {
   try {
     const { name, email, password } = req.body;

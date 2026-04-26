@@ -102,6 +102,19 @@ class UserRepository {
     return safeUser;
   }
 
+  async resetPassword(id, newPasswordHash) {
+    const { data: updatedUser, error } = await supabase
+      .from('users')
+      .update({ password_hash: newPasswordHash, needs_password_change: true })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    const { passwordHash, ...safeUser } = this._mapToCamelCase(updatedUser);
+    return safeUser;
+  }
+
   async updateProfile(id, profileData) {
     const dataToUpdate = {};
     if (profileData.major !== undefined) dataToUpdate.major = profileData.major;

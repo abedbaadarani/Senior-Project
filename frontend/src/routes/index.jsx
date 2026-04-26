@@ -7,7 +7,6 @@ import ProtectedRoute from '../components/ProtectedRoute';
 
 // Pages
 import Login from '../pages/Login';
-import ForgotPassword from '../pages/ForgotPassword';
 import RegisterStudent from '../pages/RegisterStudent';
 import RegisterAlumni from '../pages/RegisterAlumni';
 import Dashboard from '../pages/Dashboard';
@@ -30,7 +29,6 @@ const AppRoutes = () => {
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/register-student" element={<RegisterStudent />} />
         <Route path="/register-alumni" element={<RegisterAlumni />} />
 
