@@ -224,7 +224,7 @@ const HeadAdminDashboard = ({ user }) => {
           {greet()}, Administrator 👑
         </h1>
         <p style={{ color: 'var(--text-muted)' }}>
-          Here's a live overview of everything happening on LIU Connect.
+          Here's a live overview of everything happening on the Alumni & Opportunity Platform.
         </p>
       </div>
 
@@ -556,16 +556,16 @@ const HeadAdminDashboard = ({ user }) => {
                       {actionIcon(log.action)}
                     </span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: '600', fontSize: '0.9rem', color: 'var(--text-color)' }}>
+                      <div style={{ fontWeight: '600', fontSize: '0.9rem', color: '#e2e8f0' }}>
                         {log.action}
                       </div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                        By <span style={{ fontWeight: '600' }}>{log.actorRole}</span>
-                        {log.metadata?.email && ` · ${log.metadata.email}`}
-                        {log.metadata?.title && ` · "${log.metadata.title}"`}
+                      <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '2px' }}>
+                        By <span style={{ fontWeight: '600', color: '#cbd5e1' }}>{log.actorRole}</span>
+                        {log.metadata?.email && <span style={{ color: '#94a3b8' }}> · {log.metadata.email}</span>}
+                        {log.metadata?.title && <span style={{ color: '#94a3b8' }}> · "{log.metadata.title}"</span>}
                       </div>
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', flexShrink: 0, textAlign: 'right', minWidth: '60px' }}>
+                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', flexShrink: 0, textAlign: 'right', minWidth: '60px' }}>
                       {timeAgo(log.timestamp)}
                     </div>
                   </div>

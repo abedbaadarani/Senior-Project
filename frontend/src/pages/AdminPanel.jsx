@@ -78,8 +78,8 @@ const PasswordResetSection = () => {
               borderBottom: i < searchResults.length - 1 ? '1px solid var(--border-color)' : 'none',
             }}>
               <div>
-                <div style={{ fontWeight: 600, fontSize: '0.92rem' }}>{u.name}</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{u.email}</div>
+                <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#e2e8f0' }}>{u.name}</div>
+                <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{u.email}</div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span style={{
@@ -143,6 +143,10 @@ const AdminPanel = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.password.length < 8) {
+      showToast('Password must be at least 8 characters long.', 'error');
+      return;
+    }
     setSubmitting(true);
     try {
       await client('/admin/create-instructor', { body: formData });

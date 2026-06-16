@@ -1,6 +1,6 @@
 # System Architecture
 
-The LIU Connect platform leverages a modern, decoupled full-stack architecture optimized for high performance, ease of scaling, and rapid iteration.
+The Alumni & Opportunity Platform leverages a modern, decoupled full-stack architecture optimized for high performance, ease of scaling, and rapid iteration.
 
 ---
 

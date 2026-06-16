@@ -64,9 +64,10 @@ const Recommendations = () => {
         {(user.role === 'ADMIN' || user.role === 'HEAD_ADMIN') && 'All System Recommendations'}
       </h1>
 
-      <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>
-        {(user.role === 'STUDENT' || user.role === 'ALUMNI') && 'View the endorsements written for you by university instructors.'}
+      <p style={{ color: '#94a3b8', marginBottom: '24px' }}>
+        {(user.role === 'STUDENT' || user.role === 'ALUMNI') && 'Endorsements written for you by university instructors for specific opportunities.'}
         {user.role === 'INSTRUCTOR' && 'Track the students that have been endorsed for opportunities.'}
+        {(user.role === 'ADMIN' || user.role === 'HEAD_ADMIN') && 'Overview of all endorsements made across the platform.'}
       </p>
 
       {error && <div className="error-message">{error}</div>}
@@ -98,6 +99,44 @@ const Recommendations = () => {
                   {new Date(rec.createdAt).toLocaleDateString()}
                 </span>
               </div>
+
+              {/* Student info */}
+              {rec.student && (
+                <div style={{
+                  display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '14px',
+                  padding: '12px 16px', borderRadius: '8px',
+                  background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                }}>
+                  <div style={{ fontSize: '0.85rem', color: '#e2e8f0' }}>
+                    <span style={{ color: '#94a3b8' }}>Student: </span>
+                    <strong>{rec.student.name}</strong>
+                  </div>
+                  {rec.student.university_id && (
+                    <div style={{ fontSize: '0.85rem', color: '#e2e8f0' }}>
+                      <span style={{ color: '#94a3b8' }}>ID: </span>
+                      <strong>{rec.student.university_id}</strong>
+                    </div>
+                  )}
+                  {rec.student.email && (
+                    <div style={{ fontSize: '0.85rem', color: '#e2e8f0' }}>
+                      <span style={{ color: '#94a3b8' }}>Email: </span>
+                      {rec.student.email}
+                    </div>
+                  )}
+                  {rec.student.major && (
+                    <div style={{ fontSize: '0.85rem', color: '#e2e8f0' }}>
+                      <span style={{ color: '#94a3b8' }}>Major: </span>
+                      {rec.student.major}
+                    </div>
+                  )}
+                  {rec.student.graduation_year && (
+                    <div style={{ fontSize: '0.85rem', color: '#e2e8f0' }}>
+                      <span style={{ color: '#94a3b8' }}>Graduation: </span>
+                      {rec.student.graduation_year}
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div style={{ marginBottom: '16px', fontSize: '0.9rem' }}>
                 <Link to={`/opportunities/${rec.opportunityId}`} style={{ fontWeight: '500' }}>

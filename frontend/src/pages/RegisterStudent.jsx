@@ -23,6 +23,16 @@ const RegisterStudent = () => {
       if (!/^\d+@students\.liu\.edu\.lb$/.test(formData.email)) {
         throw new Error('Must use a valid ID@students.liu.edu.lb email address');
       }
+
+      const pw = formData.password;
+      if (pw.length < 8) {
+        throw new Error('Password must be at least 8 characters long');
+      }
+      const checks = [/[A-Z]/.test(pw), /[a-z]/.test(pw), /[0-9]/.test(pw), /[^A-Za-z0-9]/.test(pw)];
+      if (checks.filter(Boolean).length < 2) {
+        throw new Error('Password is too weak. Include uppercase, lowercase, numbers, or special characters.');
+      }
+
       await client('/auth/register/student', { body: formData });
 
       // Auto login immediately after registration

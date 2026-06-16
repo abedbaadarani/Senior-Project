@@ -66,6 +66,7 @@ const OpportunityDetails = () => {
   const [recMessage, setRecMessage]     = useState('');
   const [recSubmitting, setRecSubmitting] = useState(false);
   const [candidates, setCandidates]     = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
 
   useEffect(() => {
     if (showRecForm && candidates.length === 0) {
@@ -87,13 +88,18 @@ const OpportunityDetails = () => {
               client('/opportunities/bookmarks'),
               client(`/applications/check/${id}`),
             ]);
-            setIsBookmarked(bkData.some(b => b.id === parseInt(id, 10)));
+            setIsBookmarked(bkData.some(b => b.id === id));
             setHasApplied(applyData.applied);
           }
           if (user.id === data.createdByUserId || user.role === 'ADMIN' || user.role === 'HEAD_ADMIN') {
             const applicantsData = await client(`/applications/opportunity/${id}`);
             setApplicants(applicantsData);
           }
+          // Fetch recommendations for this opportunity
+          try {
+            const recsData = await client(`/recommendations/opportunity/${id}`);
+            setRecommendations(recsData);
+          } catch (_) { /* no recommendations or no access */ }
         }
       } catch (err) {
         setError(err.message || 'Failed to fetch details');
@@ -339,16 +345,16 @@ const OpportunityDetails = () => {
                   onChange={(e) => {
                     setSearchTerm(e.target.value);
                     const matched = candidates.find(c => {
-                      const sid = c.email.split('@')[0];
-                      return `${c.name}${c.fatherName ? ` (${c.fatherName})` : ''} - ID: ${sid}` === e.target.value;
+                      const sid = c.universityId || c.email.split('@')[0];
+                      return `${c.name}${c.fatherName ? ` ${c.fatherName}` : ''} (${c.role}) - ID: ${sid}` === e.target.value;
                     });
                     setRecStudentId(matched ? matched.id : '');
                   }}
                 />
                 <datalist id="candidateOptions">
                   {candidates.map(c => {
-                    const sid = c.email.split('@')[0];
-                    return <option key={c.id} value={`${c.name}${c.fatherName ? ` (${c.fatherName})` : ''} - ID: ${sid}`} />;
+                    const sid = c.universityId || c.email.split('@')[0];
+                    return <option key={c.id} value={`${c.name}${c.fatherName ? ` ${c.fatherName}` : ''} (${c.role}) - ID: ${sid}`} />;
                   })}
                 </datalist>
                 {recStudentId && (
@@ -386,6 +392,52 @@ const OpportunityDetails = () => {
           </div>
         )}
       </div>
+
+      {/* ── Endorsements section ── */}
+      {recommendations.length > 0 && (
+        <div className="card" style={{ marginTop: '24px' }}>
+          <h3 style={{ margin: '0 0 20px 0', color: 'var(--primary-color)' }}>
+            Endorsements ({recommendations.length})
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {recommendations.map(rec => (
+              <div key={rec.id} style={{
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(255,255,255,0.08)',
+                borderLeft: '4px solid #7c3aed',
+                borderRadius: '10px', padding: '16px 20px',
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+                  <div>
+                    <h4 style={{ margin: '0 0 4px 0', fontSize: '1rem', color: '#f8fafc' }}>
+                      {rec.student?.name || 'Student'}
+                    </h4>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', fontSize: '0.82rem', color: '#94a3b8' }}>
+                      {rec.student?.university_id && <span>ID: <strong style={{ color: '#e2e8f0' }}>{rec.student.university_id}</strong></span>}
+                      {rec.student?.email && <span>{rec.student.email}</span>}
+                      {rec.student?.major && <span>Major: {rec.student.major}</span>}
+                      {rec.student?.graduation_year && <span>Graduation: {rec.student.graduation_year}</span>}
+                    </div>
+                  </div>
+                  <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                    {new Date(rec.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+                <div style={{
+                  padding: '12px 16px', borderRadius: '8px',
+                  background: 'rgba(124,58,237,0.08)', border: '1px solid rgba(124,58,237,0.15)',
+                  fontStyle: 'italic', color: '#e2e8f0', fontSize: '0.9rem', marginBottom: '8px',
+                }}>
+                  "{rec.message}"
+                </div>
+                <div style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                  Endorsed by <strong style={{ color: '#a78bfa' }}>{rec.instructor?.name || 'Instructor'}</strong>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* ── Applicants section ── */}
       {(isOwner || isAdmin) && (

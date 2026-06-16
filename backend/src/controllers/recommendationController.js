@@ -29,8 +29,8 @@ export const createRecommendation = async (req, res) => {
 
     const recommendation = await recommendationRepository.create({
       instructorId: req.user.id,
-      studentId: parseInt(studentId, 10),
-      opportunityId: parseInt(opportunityId, 10),
+      studentId,
+      opportunityId,
       message,
     });
 
@@ -40,9 +40,9 @@ export const createRecommendation = async (req, res) => {
     });
 
     await notificationRepository.createNotification({
-      userId: parseInt(studentId, 10),
+      userId: studentId,
       title: 'New Recommendation',
-      message: `Instructor ${req.user.name} has recommended you for: ${opportunity.title}`,
+      message: `Instructor ${req.user.name || 'An instructor'} has recommended you for: ${opportunity.title}`,
       link: '/recommendations'
     });
 
@@ -67,6 +67,15 @@ export const getMyRecommendationsAsStudent = async (req, res) => {
     res.status(200).json(recommendations);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch recommendations' });
+  }
+};
+
+export const getRecommendationsForOpportunity = async (req, res) => {
+  try {
+    const recommendations = await recommendationRepository.getByOpportunityId(req.params.opportunityId);
+    res.status(200).json(recommendations);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch recommendations for opportunity' });
   }
 };
 

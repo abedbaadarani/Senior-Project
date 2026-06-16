@@ -129,7 +129,7 @@ const AlumniDashboard = ({ user }) => {
     return (
       <div style={{ padding: '32px 0' }}>
         <h1 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#e2e8f0', marginBottom: '28px' }}>
-          {greet()}, {user?.firstName || 'Alumni'}
+          {greet()}, {user?.name || 'Alumni'}
         </h1>
         {[...Array(4)].map((_, i) => <ListSkeleton key={i} />)}
       </div>
@@ -143,7 +143,7 @@ const AlumniDashboard = ({ user }) => {
     <div style={{ padding: '32px 0' }}>
       {/* Greeting */}
       <h1 style={{ fontSize: '1.5rem', fontWeight: '800', color: '#e2e8f0', marginBottom: '28px' }}>
-        {greet()}, {user?.firstName || 'Alumni'}
+        {greet()}, {user?.name || 'Alumni'}
       </h1>
 
       {/* ============================================================ */}
@@ -402,7 +402,7 @@ const AlumniDashboard = ({ user }) => {
                 Quick Actions
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <Link to="/opportunities/create" style={quickBtn(true)}
+                <Link to="/my-opportunities" style={quickBtn(true)}
                   onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 20px rgba(249,115,22,0.35)'; }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
                 >
@@ -414,7 +414,7 @@ const AlumniDashboard = ({ user }) => {
                 >
                   View Recommendations
                 </Link>
-                <Link to="/alumni" style={quickBtn(false)}
+                <Link to="/alumni-directory" style={quickBtn(false)}
                   onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.10)'; }}
                   onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
                 >

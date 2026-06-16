@@ -199,6 +199,16 @@ const RegisterAlumni = () => {
       if (!formData.universityId) {
         throw new Error('Must provide a valid university ID');
       }
+
+      const pw = formData.password;
+      if (pw.length < 8) {
+        throw new Error('Password must be at least 8 characters long');
+      }
+      const checks = [/[A-Z]/.test(pw), /[a-z]/.test(pw), /[0-9]/.test(pw), /[^A-Za-z0-9]/.test(pw)];
+      if (checks.filter(Boolean).length < 2) {
+        throw new Error('Password is too weak. Include uppercase, lowercase, numbers, or special characters.');
+      }
+
       const payload = { ...formData, graduationYear: parseInt(formData.graduationYear, 10) };
       await client('/auth/register/alumni', { body: payload });
       setSuccess(true);

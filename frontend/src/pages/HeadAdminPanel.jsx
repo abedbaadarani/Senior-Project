@@ -96,8 +96,8 @@ const PasswordResetSection = () => {
               borderBottom: i < searchResults.length - 1 ? '1px solid var(--border-color)' : 'none',
             }}>
               <div>
-                <div style={{ fontWeight: 600, fontSize: '0.92rem' }}>{u.name}</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{u.email}</div>
+                <div style={{ fontWeight: 600, fontSize: '0.92rem', color: '#e2e8f0' }}>{u.name}</div>
+                <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{u.email}</div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span style={{
@@ -160,6 +160,10 @@ const HeadAdminPanel = () => {
 
   const handleInstructorSubmit = async (e) => {
     e.preventDefault();
+    if (instructorForm.password.length < 8) {
+      showToast('Password must be at least 8 characters long.', 'error');
+      return;
+    }
     setInstructorSubmitting(true);
     try {
       await client('/admin/create-instructor', { body: instructorForm });
@@ -174,6 +178,10 @@ const HeadAdminPanel = () => {
 
   const handleAdminSubmit = async (e) => {
     e.preventDefault();
+    if (adminForm.password.length < 8) {
+      showToast('Password must be at least 8 characters long.', 'error');
+      return;
+    }
     setAdminSubmitting(true);
     try {
       await client('/admin/create-admin', { body: adminForm });

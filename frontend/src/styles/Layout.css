@@ -1,5 +1,5 @@
 /* ===================================================================
-   LIU CONNECT — Global Design System
+   Alumni & Opportunity Platform — Global Design System
    Modern, premium UI for a University Senior Project
 =================================================================== */
 
@@ -93,7 +93,7 @@ body {
     0 4px 24px rgba(0,0,0,0.45),
     inset 0 1px 0 rgba(255,255,255,0.04);
   position: relative;
-  overflow: hidden;
+  overflow: visible;
 }
 
 /* Subtle glow orb behind the logo */
@@ -555,6 +555,15 @@ body {
   box-shadow: 0 0 0 3px rgba(249,115,22,0.18);
 }
 .content .form-control::placeholder { color: rgba(255,255,255,0.25); }
+.content .form-group label {
+  color: #e2e8f0;
+}
+.content .card h3 {
+  color: #f1f5f9;
+}
+.content .card p {
+  color: #94a3b8;
+}
 
 .content select.form-control option {
   background: #1e293b;

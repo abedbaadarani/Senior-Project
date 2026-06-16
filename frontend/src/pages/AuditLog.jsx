@@ -110,7 +110,7 @@ const AuditLog = () => {
         <div>
           <h1 className="page-title" style={{ marginBottom: '4px' }}>Audit Log</h1>
           <p style={{ color: 'var(--text-muted)', margin: 0 }}>
-            A complete, immutable record of every admin action on LIU Connect.
+            A complete, immutable record of every admin action on the Alumni & Opportunity Platform.
           </p>
         </div>
         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
@@ -228,10 +228,10 @@ const AuditLog = () => {
                   >
                     {/* Time */}
                     <td style={{ padding: '14px 16px', whiteSpace: 'nowrap' }}>
-                      <div style={{ fontWeight: '600', color: 'var(--text-color)', fontSize: '0.85rem' }}>
+                      <div style={{ fontWeight: '600', color: '#e2e8f0', fontSize: '0.85rem' }}>
                         {timeAgo(log.timestamp)}
                       </div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                      <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '2px' }}>
                         {formatDateTime(log.timestamp)}
                       </div>
                     </td>
@@ -250,24 +250,24 @@ const AuditLog = () => {
                     <td style={{ padding: '14px 16px' }}>
                       <span style={{
                         display: 'inline-block', padding: '2px 9px', borderRadius: '99px',
-                        background: 'rgba(255,255,255,0.06)', color: 'var(--text-muted)',
+                        background: 'rgba(255,255,255,0.10)', color: '#e2e8f0',
                         fontSize: '0.75rem', fontWeight: '700', marginBottom: '4px',
                       }}>
                         {log.actorRole?.replace('_', ' ')}
                       </span>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>ID: {log.actorUserId}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>ID: {log.actorUserId}</div>
                     </td>
 
                     {/* Target / Details */}
                     <td style={{ padding: '14px 16px' }}>
-                      <span style={{ fontWeight: '600', color: 'var(--text-color)' }}>
+                      <span style={{ fontWeight: '600', color: '#f1f5f9' }}>
                         {log.targetType} {log.targetId ? `#${log.targetId}` : ''}
                       </span>
                       {log.metadata?.email && (
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>📧 {log.metadata.email}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>📧 {log.metadata.email}</div>
                       )}
                       {log.metadata?.title && (
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>📌 {log.metadata.title}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>📌 {log.metadata.title}</div>
                       )}
                     </td>
                   </tr>

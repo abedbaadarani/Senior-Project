@@ -19,7 +19,7 @@ class RecommendationRepository {
       .from('recommendations')
       .select(`
         *,
-        student:users!recommendations_student_id_fkey(name, email, graduation_year),
+        student:users!recommendations_student_id_fkey(name, email, university_id, major, graduation_year),
         opportunity:opportunities!recommendations_opportunity_id_fkey(title, company)
       `)
       .eq('instructor_id', instructorId);
@@ -33,10 +33,25 @@ class RecommendationRepository {
       .from('recommendations')
       .select(`
         *,
+        student:users!recommendations_student_id_fkey(name, email, university_id, major, graduation_year),
         instructor:users!recommendations_instructor_id_fkey(name, email),
         opportunity:opportunities!recommendations_opportunity_id_fkey(title, company)
       `)
       .eq('student_id', studentId);
+
+    if (error) throw error;
+    return recommendations.map(r => this._mapToCamelCase(r));
+  }
+
+  async getByOpportunityId(opportunityId) {
+    const { data: recommendations, error } = await supabase
+      .from('recommendations')
+      .select(`
+        *,
+        student:users!recommendations_student_id_fkey(name, email, university_id, major, graduation_year),
+        instructor:users!recommendations_instructor_id_fkey(name, email)
+      `)
+      .eq('opportunity_id', opportunityId);
 
     if (error) throw error;
     return recommendations.map(r => this._mapToCamelCase(r));

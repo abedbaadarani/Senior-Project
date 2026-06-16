@@ -10,6 +10,10 @@ export const createAdmin = async (req, res) => {
       return res.status(400).json({ error: 'Name, email, and password are required' });
     }
 
+    if (password.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters long' });
+    }
+
     const existingUser = await userRepository.findByEmail(email);
     if (existingUser) {
       return res.status(400).json({ error: 'This email has already been used.' });
@@ -66,6 +70,10 @@ export const createInstructor = async (req, res) => {
 
     if (!name || !email || !password) {
       return res.status(400).json({ error: 'Name, email, and password are required' });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters long' });
     }
 
     const existingUser = await userRepository.findByEmail(email);

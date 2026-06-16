@@ -13,7 +13,7 @@ export const getConversations = async (req, res) => {
 
 export const getMessagesBetween = async (req, res) => {
     try {
-        const partnerId = parseInt(req.params.partnerId, 10);
+        const partnerId = req.params.partnerId;
         // Mark messages from this partner as read
         await messageRepository.markAsRead(req.user.id, partnerId);
 
@@ -32,14 +32,14 @@ export const sendMessage = async (req, res) => {
             return res.status(400).json({ error: 'Receiver ID and content are required' });
         }
 
-        const message = await messageRepository.sendMessage(req.user.id, parseInt(receiverId, 10), content);
+        const message = await messageRepository.sendMessage(req.user.id, receiverId, content);
 
         // Also create a notification for the receiver
         await notificationRepository.createNotification({
-            userId: parseInt(receiverId, 10),
+            userId: receiverId,
             title: 'New Message',
-            message: `${req.user.name} sent you a message: "${content.substring(0, 50)}${content.length > 50 ? '...' : ''}"`,
-            link: `/messages/${req.user.id}`
+            message: `${req.user.name || 'Someone'} sent you a message: "${content.substring(0, 50)}${content.length > 50 ? '...' : ''}"`,
+            link: `/messages`
         });
 
         res.status(201).json(message);

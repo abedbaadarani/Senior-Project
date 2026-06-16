@@ -23,10 +23,48 @@ const Messages = () => {
   const [loadingConv, setLoadingConv]         = useState(true);
   const [loadingMsg, setLoadingMsg]           = useState(false);
   const messagesEndRef = useRef(null);
+  const [showNewChat, setShowNewChat]         = useState(false);
+  const [allUsers, setAllUsers]               = useState([]);
+  const [userSearch, setUserSearch]           = useState('');
+  const [loadingUsers, setLoadingUsers]       = useState(false);
 
   useEffect(() => {
     if (location.state?.partnerId) setActivePartnerId(location.state.partnerId);
   }, [location.state]);
+
+  const openNewChat = async () => {
+    setShowNewChat(true);
+    setUserSearch('');
+    if (allUsers.length === 0) {
+      setLoadingUsers(true);
+      try {
+        const data = await client('/users');
+        setAllUsers(data.filter(u => u.id !== user.id));
+      } catch (err) {
+        console.error('Failed to fetch users', err);
+      } finally {
+        setLoadingUsers(false);
+      }
+    }
+  };
+
+  const startConversation = (partner) => {
+    setActivePartnerId(partner.id);
+    setShowNewChat(false);
+    if (!conversations.some(c => c.partnerId === partner.id)) {
+      setConversations(prev => [{
+        partnerId: partner.id,
+        partner: { id: partner.id, name: partner.name, email: partner.email, role: partner.role },
+        latestMessage: null,
+        unreadCount: 0,
+      }, ...prev]);
+    }
+  };
+
+  const filteredUsers = allUsers.filter(u => {
+    const q = userSearch.toLowerCase();
+    return u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q) || u.role?.toLowerCase().includes(q);
+  });
 
   const fetchConversations = async () => {
     try {
@@ -118,9 +156,79 @@ const Messages = () => {
     }}>
       {/* Conversations sidebar */}
       <div style={{ width: '300px', borderRight: '1px solid rgba(255,255,255,0.08)', display: 'flex', flexDirection: 'column', background: 'rgba(0,0,0,0.2)', flexShrink: 0 }}>
-        <div style={{ padding: '20px', borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)' }}>
+        <div style={{ padding: '20px', borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 style={{ margin: 0, color: '#e2e8f0', fontSize: '1.1rem', fontWeight: '700' }}>💬 Messages</h2>
+          <button
+            onClick={openNewChat}
+            style={{
+              background: 'linear-gradient(135deg, #f97316, #ea580c)', color: '#fff',
+              border: 'none', borderRadius: '8px', padding: '6px 12px',
+              fontSize: '0.78rem', fontWeight: '700', cursor: 'pointer',
+            }}
+          >
+            + New
+          </button>
         </div>
+
+        {showNewChat && (
+          <div style={{ padding: '12px', borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'rgba(0,0,0,0.3)' }}>
+            <input
+              type="text"
+              placeholder="Search users..."
+              value={userSearch}
+              onChange={e => setUserSearch(e.target.value)}
+              autoFocus
+              style={{
+                width: '100%', padding: '8px 12px', borderRadius: '8px',
+                background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.12)',
+                color: '#fff', fontSize: '0.85rem', outline: 'none', boxSizing: 'border-box',
+              }}
+            />
+            <div style={{ maxHeight: '200px', overflowY: 'auto', marginTop: '8px' }}>
+              {loadingUsers ? (
+                <p style={{ color: '#94a3b8', fontSize: '0.82rem', textAlign: 'center', padding: '12px 0' }}>Loading...</p>
+              ) : filteredUsers.length === 0 ? (
+                <p style={{ color: '#94a3b8', fontSize: '0.82rem', textAlign: 'center', padding: '12px 0' }}>No users found</p>
+              ) : (
+                filteredUsers.slice(0, 10).map(u => {
+                  const rc = ROLE_COLORS[u.role] || '#64748b';
+                  return (
+                    <div
+                      key={u.id}
+                      onClick={() => startConversation(u)}
+                      style={{
+                        padding: '10px', borderRadius: '8px', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', gap: '10px',
+                        transition: 'background 0.15s',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                    >
+                      <div style={{
+                        width: '32px', height: '32px', borderRadius: '50%', flexShrink: 0,
+                        background: `linear-gradient(135deg, ${rc}, ${rc}bb)`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: '#fff', fontWeight: '700', fontSize: '0.8rem',
+                      }}>
+                        {u.name?.[0]?.toUpperCase() || '?'}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: '0.85rem', fontWeight: '600', color: '#e2e8f0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.name}</div>
+                        <div style={{ fontSize: '0.72rem', color: '#64748b' }}>{u.role?.replace('_', ' ')}</div>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+            <button
+              onClick={() => setShowNewChat(false)}
+              style={{ width: '100%', marginTop: '8px', padding: '6px', background: 'none', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', color: '#94a3b8', fontSize: '0.78rem', cursor: 'pointer' }}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
 
         <div style={{ flex: 1, overflowY: 'auto' }}>
           {loadingConv ? (

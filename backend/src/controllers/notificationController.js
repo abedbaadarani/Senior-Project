@@ -12,7 +12,7 @@ export const getMyNotifications = async (req, res) => {
 
 export const markAsRead = async (req, res) => {
     try {
-        const notificationId = parseInt(req.params.id, 10);
+        const notificationId = req.params.id;
         const updated = await notificationRepository.markAsRead(notificationId);
         res.status(200).json(updated);
     } catch (err) {

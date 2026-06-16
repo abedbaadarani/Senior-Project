@@ -67,7 +67,7 @@ const AppRoutes = () => {
           } />
 
           <Route path="/recommendations" element={
-            <ProtectedRoute allowedRoles={['INSTRUCTOR', 'ALUMNI', 'ADMIN', 'HEAD_ADMIN']}>
+            <ProtectedRoute allowedRoles={['STUDENT', 'INSTRUCTOR', 'ALUMNI', 'ADMIN', 'HEAD_ADMIN']}>
               <Recommendations />
             </ProtectedRoute>
           } />
@@ -93,7 +93,7 @@ const AppRoutes = () => {
 
           {/* Instructor Only */}
           <Route path="/alumni-approval" element={
-            <ProtectedRoute allowedRoles={['INSTRUCTOR']}>
+            <ProtectedRoute allowedRoles={['INSTRUCTOR', 'ADMIN', 'HEAD_ADMIN']}>
               <AlumniApproval />
             </ProtectedRoute>
           } />
@@ -113,7 +113,7 @@ const AppRoutes = () => {
           } />
 
           <Route path="/audit-log" element={
-            <ProtectedRoute allowedRoles={['HEAD_ADMIN']}>
+            <ProtectedRoute allowedRoles={['ADMIN', 'HEAD_ADMIN']}>
               <AuditLog />
             </ProtectedRoute>
           } />

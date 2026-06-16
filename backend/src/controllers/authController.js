@@ -14,6 +14,10 @@ export const registerStudent = async (req, res) => {
       return res.status(400).json({ error: 'Name, Father Name, email, and password are required' });
     }
 
+    if (password.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters long' });
+    }
+
     const emailMatch = email.match(/^(\d+)@students\.liu\.edu\.lb$/);
     if (!emailMatch) {
       return res.status(400).json({ error: 'Must use a valid ID@students.liu.edu.lb email' });
@@ -47,6 +51,10 @@ export const registerAlumni = async (req, res) => {
 
     if (!name || !fatherName || !email || !password || !graduationYear || !universityId) {
       return res.status(400).json({ error: 'Name, Father Name, University ID, email, password, and graduationYear are required' });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters long' });
     }
 
     const existingUser = await userRepository.findByEmail(email);
@@ -95,6 +103,7 @@ export const login = async (req, res) => {
 
     const payload = {
       id: user.id,
+      name: user.name,
       role: user.role,
       email: user.email,
       needsPasswordChange: user.needsPasswordChange
@@ -197,6 +206,7 @@ export const changePassword = async (req, res) => {
     // Issue a fresh token since their security state changed
     const payload = {
       id: updatedUser.id,
+      name: updatedUser.name,
       role: updatedUser.role,
       email: updatedUser.email,
       needsPasswordChange: false
