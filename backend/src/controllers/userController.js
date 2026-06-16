@@ -12,8 +12,7 @@ export const userController = {
   },
   getUserById: async (req, res, next) => {
     try {
-      const id = parseInt(req.params.id, 10);
-      const user = await userService.getUserById(id);
+      const user = await userService.getUserById(req.params.id);
       return successResponse(res, user);
     } catch (error) {
       next(error);

@@ -87,7 +87,10 @@ const StudentDashboard = ({ user }) => {
   const applicationCount = stats?.applicationCount ?? 0;
   const bookmarkCount = stats?.bookmarkCount ?? 0;
   const recommendationCount = stats?.recommendationCount ?? 0;
-  const applicationsByStatus = stats?.applicationsByStatus || [];
+  const rawAppsByStatus = stats?.applicationsByStatus || [];
+  const applicationsByStatus = Array.isArray(rawAppsByStatus)
+    ? rawAppsByStatus
+    : Object.entries(rawAppsByStatus).map(([status, count]) => ({ status, count }));
   const applications = stats?.applications || [];
   const recommendations = stats?.recommendations || [];
   const bookmarks = stats?.bookmarks || [];
@@ -113,7 +116,7 @@ const StudentDashboard = ({ user }) => {
       {/* ── 1. Header ── */}
       <div style={{ marginBottom: '28px' }}>
         <h1 className="page-title" style={{ marginBottom: '4px' }}>
-          {greet()}, {user?.name?.split(' ')[0]} <span role="img" aria-label="graduation cap">🎓</span>
+          {greet()}, {user?.name || 'Student'}
         </h1>
         <p style={{ color: 'var(--text-muted)' }}>
           Track your applications, explore opportunities, and build your career path.
@@ -625,7 +628,7 @@ const StudentDashboard = ({ user }) => {
                     display: '-webkit-box', WebkitLineClamp: 2,
                     WebkitBoxOrient: 'vertical', overflow: 'hidden',
                   }}>
-                    "{rec.content?.length > 80 ? rec.content.slice(0, 80) + '...' : rec.content}"
+                    "{rec.message?.length > 80 ? rec.message.slice(0, 80) + '...' : rec.message}"
                   </div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                     -- {rec.instructor?.name || 'Instructor'}
@@ -668,55 +671,6 @@ const StudentDashboard = ({ user }) => {
             </div>
           )}
 
-          {/* Quick Actions */}
-          <div className="card" style={{ margin: 0 }}>
-            <SectionTitle>
-              <span role="img" aria-label="lightning">⚡</span> Quick Actions
-            </SectionTitle>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              <Link to="/opportunities" className="btn-primary" style={{
-                textAlign: 'center', textDecoration: 'none',
-                display: 'block', padding: '10px',
-              }}>
-                🔍 Find Opportunities
-              </Link>
-              <Link to="/profile" style={{
-                textAlign: 'center', textDecoration: 'none',
-                display: 'block', padding: '10px', borderRadius: '8px',
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-color)', fontWeight: '600', fontSize: '0.9rem',
-              }}>
-                👤 Update Profile
-              </Link>
-              <Link to="/alumni-directory" style={{
-                textAlign: 'center', textDecoration: 'none',
-                display: 'block', padding: '10px', borderRadius: '8px',
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-color)', fontWeight: '600', fontSize: '0.9rem',
-              }}>
-                📒 Alumni Directory
-              </Link>
-              <Link to="/messages" style={{
-                textAlign: 'center', textDecoration: 'none',
-                display: 'block', padding: '10px', borderRadius: '8px',
-                border: '1px solid var(--border-color)',
-                color: 'var(--text-color)', fontWeight: '600', fontSize: '0.9rem',
-                position: 'relative',
-              }}>
-                💬 Messages
-                {unreadMessages > 0 && (
-                  <span style={{
-                    marginLeft: '6px',
-                    background: '#ef4444', color: '#fff',
-                    fontSize: '0.7rem', padding: '1px 6px',
-                    borderRadius: '99px', fontWeight: 700,
-                  }}>
-                    {unreadMessages}
-                  </span>
-                )}
-              </Link>
-            </div>
-          </div>
         </div>
       </div>
     </div>

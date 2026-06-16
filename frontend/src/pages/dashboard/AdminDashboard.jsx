@@ -53,7 +53,7 @@ const AdminDashboard = ({ user }) => {
     return (
       <div>
         <div style={{ marginBottom: '32px' }}>
-          <h1 className="page-title" style={{ marginBottom: '4px' }}>{greet()}, {user?.name?.split(' ')[0]} 🛡️</h1>
+          <h1 className="page-title" style={{ marginBottom: '4px' }}>{greet()}, {user?.name || 'Admin'}</h1>
           <p style={{ color: 'var(--text-muted)' }}>Manage users, moderate content, and keep the platform running smoothly.</p>
         </div>
         <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '36px' }}>
@@ -103,7 +103,7 @@ const AdminDashboard = ({ user }) => {
       {/* ── Header ──────────────────────────────────────────────────────────── */}
       <div style={{ marginBottom: '32px' }}>
         <h1 className="page-title" style={{ marginBottom: '4px' }}>
-          {greet()}, {user?.name?.split(' ')[0]} 🛡️
+          {greet()}, {user?.name || 'Admin'}
         </h1>
         <p style={{ color: 'var(--text-muted)' }}>
           Manage users, moderate content, and keep the platform running smoothly.
@@ -382,17 +382,17 @@ const AdminDashboard = ({ user }) => {
                       {actionIcon(log.action)}
                     </span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: '600', fontSize: '0.9rem', color: 'var(--text-color)' }}>
+                      <div style={{ fontWeight: '600', fontSize: '0.9rem', color: '#e2e8f0' }}>
                         {log.action}
                       </div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                        By <span style={{ fontWeight: '600' }}>{log.actorRole}</span>
-                        {log.metadata?.email && ` · ${log.metadata.email}`}
-                        {log.metadata?.title && ` · "${log.metadata.title}"`}
-                        {log.metadata?.name && !log.metadata?.email && ` · ${log.metadata.name}`}
+                      <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '2px' }}>
+                        By <span style={{ fontWeight: '600', color: '#cbd5e1' }}>{log.actorRole}</span>
+                        {log.metadata?.email && <span style={{ color: '#94a3b8' }}> · {log.metadata.email}</span>}
+                        {log.metadata?.title && <span style={{ color: '#94a3b8' }}> · "{log.metadata.title}"</span>}
+                        {log.metadata?.name && !log.metadata?.email && <span style={{ color: '#94a3b8' }}> · {log.metadata.name}</span>}
                       </div>
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', flexShrink: 0, textAlign: 'right', minWidth: '60px' }}>
+                    <div style={{ fontSize: '0.75rem', color: '#94a3b8', flexShrink: 0, textAlign: 'right', minWidth: '60px' }}>
                       {timeAgo(log.timestamp || log.createdAt)}
                     </div>
                   </div>

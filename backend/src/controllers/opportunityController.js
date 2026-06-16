@@ -155,7 +155,7 @@ export const deleteOpportunity = async (req, res) => {
 
 export const toggleBookmark = async (req, res) => {
   try {
-    const opportunityId = parseInt(req.params.id, 10);
+    const opportunityId = req.params.id;
     const userId = req.user.id;
 
     const isBookmarked = await bookmarkRepository.checkBookmark(userId, opportunityId);

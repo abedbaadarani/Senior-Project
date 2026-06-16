@@ -4,7 +4,7 @@ import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.get('/', async (req, res) => {
+router.get('/', requireAuth, async (req, res) => {
   try {
     const users = await userRepository.getAllUsers();
     res.status(200).json(users);
@@ -22,7 +22,7 @@ router.get('/candidates', requireAuth, async (req, res) => {
   }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', requireAuth, async (req, res) => {
   try {
     const user = await userRepository.getUserById(req.params.id);
     if (!user) {

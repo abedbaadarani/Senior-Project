@@ -4,7 +4,7 @@ import notificationRepository from '../data/notificationRepository.js';
 
 export const applyForOpportunity = async (req, res) => {
     try {
-        const opportunityId = parseInt(req.body.opportunityId, 10);
+        const opportunityId = req.body.opportunityId;
         const userId = req.user.id;
 
         if (!opportunityId) {
@@ -23,7 +23,7 @@ export const applyForOpportunity = async (req, res) => {
             await notificationRepository.createNotification({
                 userId: opportunity.createdByUserId,
                 title: 'New Application',
-                message: `${req.user.name} applied to your opportunity: ${opportunity.title}`,
+                message: `${req.user.name || 'Someone'} applied to your opportunity: ${opportunity.title}`,
                 link: `/opportunities/${opportunityId}`
             });
         }
@@ -40,7 +40,7 @@ export const applyForOpportunity = async (req, res) => {
 
 export const checkApplicationStatus = async (req, res) => {
     try {
-        const opportunityId = parseInt(req.params.opportunityId, 10);
+        const opportunityId = req.params.opportunityId;
         const userId = req.user.id;
         const application = await applicationRepository.checkApplication(userId, opportunityId);
 
@@ -63,7 +63,7 @@ export const getMyApplications = async (req, res) => {
 
 export const getApplicationsForOpportunity = async (req, res) => {
     try {
-        const opportunityId = parseInt(req.params.opportunityId, 10);
+        const opportunityId = req.params.opportunityId;
         const opportunity = await opportunityRepository.getById(opportunityId);
 
         if (!opportunity) {
@@ -85,7 +85,7 @@ export const getApplicationsForOpportunity = async (req, res) => {
 
 export const updateApplicationStatus = async (req, res) => {
     try {
-        const applicationId = parseInt(req.params.applicationId, 10);
+        const applicationId = req.params.applicationId;
         const { status } = req.body;
 
         if (!['PENDING', 'REVIEWED', 'INTERVIEWING', 'ACCEPTED', 'REJECTED'].includes(status)) {
@@ -110,7 +110,7 @@ export const updateApplicationStatus = async (req, res) => {
                 userId: updatedApp.userId,
                 title: 'Application Update',
                 message: `Your application status for ${application.opportunity?.title || 'an opportunity'} is now: ${status}`,
-                link: '/dashboard'
+                link: `/opportunities/${application.opportunityId}`
             });
         }
 

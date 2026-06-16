@@ -29,7 +29,7 @@ const AlumniApproval = () => {
   };
 
   useEffect(() => {
-    if (user?.role === 'INSTRUCTOR') fetchPending();
+    if (['INSTRUCTOR', 'ADMIN', 'HEAD_ADMIN'].includes(user?.role)) fetchPending();
   }, [user]);
 
   const doApprove = async () => {
@@ -56,15 +56,15 @@ const AlumniApproval = () => {
     }
   };
 
-  if (user?.role !== 'INSTRUCTOR') {
-    return <div className="error-message">Unauthorized. Only Instructors can verify alumni credentials.</div>;
+  if (!['INSTRUCTOR', 'ADMIN', 'HEAD_ADMIN'].includes(user?.role)) {
+    return <div className="error-message">Unauthorized. Only Instructors, Admins, and Head Admins can verify alumni credentials.</div>;
   }
 
   return (
     <div>
       <h1 className="page-title">Alumni Approvals</h1>
       <p style={{ color: 'var(--text-muted)', marginBottom: '32px' }}>
-        Review and verify graduated students so they can access the LIU Connect platform.
+        Review and verify graduated students so they can access the Alumni & Opportunity Platform.
       </p>
 
       {error && <div className="error-message">{error}</div>}
@@ -145,7 +145,7 @@ const AlumniApproval = () => {
       <ConfirmModal
         isOpen={modal.open && modal.type === 'approve'}
         title={`Approve ${modal.alumni?.name}?`}
-        message={`This will grant ${modal.alumni?.name} full alumni access to LIU Connect. They will be notified.`}
+        message={`This will grant ${modal.alumni?.name} full alumni access to the Alumni & Opportunity Platform. They will be notified.`}
         confirmText="Approve Alumni"
         cancelText="Cancel"
         type="info"

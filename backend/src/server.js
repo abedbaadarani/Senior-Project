@@ -4,7 +4,7 @@ import app from './app.js';
 import userRepository from './data/userRepository.js';
 import bcrypt from 'bcrypt';
 
-const PORT = envConfig.PORT || 5000;
+const PORT = envConfig.PORT || 5050;
 
 const startServer = async () => {
   try {

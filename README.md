@@ -5,7 +5,7 @@ A professional full-stack platform enabling alumni, students, and university adm
 ## 📌 Problem Statement
 Universities often struggle to maintain active connections with their alumni network. Existing students face difficulties in finding tailored internships and jobs, while instructors lack a centralized way to officially endorse and recommend students for specific opportunities. 
 
-The **LIU Connect Platform** bridges this gap by providing a closed, role-based ecosystem where students, alumni, and faculty can seamlessly interact, post exclusive opportunities, and foster career growth—all under the strict governance of university administrators.
+The **Alumni & Opportunity Platform** bridges this gap by providing a closed, role-based ecosystem where students, alumni, and faculty can seamlessly interact, post exclusive opportunities, and foster career growth—all under the strict governance of university administrators.
 
 ---
 
@@ -75,7 +75,7 @@ You will need to run the backend and frontend simultaneously in two separate ter
 ### 1) Environment Setup
 Create a `.env` file in the `/backend` directory:
 ```env
-PORT=5000
+PORT=5050
 UNIVERSITY_DOMAIN=liu.edu
 JWT_SECRET=super_secret_jwt_key_for_development
 HEAD_ADMIN_EMAIL=admin@liu.edu
@@ -89,7 +89,7 @@ cd backend
 npm install
 npm run dev
 ```
-*API running on `http://localhost:5000`*
+*API running on `http://localhost:5050`*
 
 ### 3) Running the Frontend
 Open a second terminal from the root directory:

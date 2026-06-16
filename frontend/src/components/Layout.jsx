@@ -30,7 +30,7 @@ const Layout = () => {
   const handleLogout = () => { logout(); navigate('/login'); };
 
   useEffect(() => {
-    if (user?.role === 'INSTRUCTOR') {
+    if (user?.role === 'INSTRUCTOR' || user?.role === 'ADMIN' || user?.role === 'HEAD_ADMIN') {
       import('../api/client').then(m =>
         m.default('/alumni/pending')
           .then(data => setPendingCount(data?.length ?? 0))
@@ -145,16 +145,16 @@ const Layout = () => {
                 </li>
               )}
 
-              {(user.role === 'INSTRUCTOR' || user.role === 'ADMIN' || user.role === 'HEAD_ADMIN' || user.role === 'ALUMNI') && (
+              {(user.role === 'INSTRUCTOR' || user.role === 'ADMIN' || user.role === 'HEAD_ADMIN' || user.role === 'ALUMNI' || user.role === 'STUDENT') && (
                 <li>
                   <Link to="/recommendations" className={isActive('/recommendations')}>
                     <Icon>🌟</Icon>
-                    {user.role === 'INSTRUCTOR' ? 'Students Recommended' : 'Recommendations'}
+                    {user.role === 'INSTRUCTOR' ? 'Students Recommended' : 'My Recommendations'}
                   </Link>
                 </li>
               )}
 
-              {user.role === 'INSTRUCTOR' && (
+              {(user.role === 'INSTRUCTOR' || user.role === 'ADMIN' || user.role === 'HEAD_ADMIN') && (
                 <li>
                   <Link to="/alumni-approval" className={isActive('/alumni-approval')}>
                     <Icon>✅</Icon>
@@ -174,19 +174,20 @@ const Layout = () => {
                 </li>
               )}
 
+              {(user.role === 'ADMIN' || user.role === 'HEAD_ADMIN') && (
+                <li>
+                  <Link to="/audit-log" className={isActive('/audit-log')}>
+                    <Icon>📋</Icon> Audit Log
+                  </Link>
+                </li>
+              )}
+
               {user.role === 'HEAD_ADMIN' && (
-                <>
-                  <li>
-                    <Link to="/head-admin" className={isActive('/head-admin')}>
-                      <Icon>➕</Icon> Account Registration
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/audit-log" className={isActive('/audit-log')}>
-                      <Icon>📋</Icon> Audit Log
-                    </Link>
-                  </li>
-                </>
+                <li>
+                  <Link to="/head-admin" className={isActive('/head-admin')}>
+                    <Icon>➕</Icon> Account Registration
+                  </Link>
+                </li>
               )}
 
             </ul>

@@ -119,7 +119,7 @@ const InstructorDashboard = ({ user }) => {
       {/* Header */}
       <div>
         <h1 style={{ margin: 0, fontSize: '1.75rem', fontWeight: 800, color: '#f1f5f9' }}>
-          {greet()}, Dr.&nbsp;{user?.name?.split(' ')[0]} <span role="img" aria-label="teacher">👨‍🏫</span>
+          {greet()}, {user?.name || 'Instructor'}
         </h1>
         <p style={{ margin: '6px 0 0', fontSize: '0.9rem', color: 'rgba(255,255,255,0.4)' }}>
           Here's what's happening with your opportunities and students.
